@@ -1,0 +1,5 @@
+CC=g++
+PLATFORM=gcc-pc
+CFLAGS+= -fPIE
+
+include Makefile.common

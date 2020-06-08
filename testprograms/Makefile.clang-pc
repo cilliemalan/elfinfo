@@ -1,0 +1,5 @@
+CC=clang
+PLATFORM=clang-pc
+CFLAGS+= -fPIE
+
+include Makefile.common

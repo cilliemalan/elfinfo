@@ -1,0 +1,11 @@
+import * as elfinfo from "../src";
+import * as assert from "assert";
+
+export default {
+    "Can open an elf file": async () => {
+        //C:\Projects\hashtag-iot\firmware\build\bin\hashtag-iot
+        let elf = await elfinfo.open("C:\\Projects\\hashtag-iot\\firmware\\build\\bin\\hashtag-iot");
+        assert.ok(elf);
+    }
+};
+

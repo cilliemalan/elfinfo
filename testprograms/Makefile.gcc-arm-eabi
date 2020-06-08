@@ -1,0 +1,9 @@
+CC=arm-none-eabi-gcc
+PLATFORM=arm-eabi
+CFLAGS+= -mcpu=cortex-m3 --specs=nosys.specs -ffunction-sections -fdata-sections -Wno-psabi -mthumb -mno-thumb-interwork
+CFLAGS+= -fno-exceptions -fno-rtti -fno-threadsafe-statics -fno-use-cxa-atexit -std=gnu++14
+CFLAGS+= -T arm.ld
+CFLAGS+= -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
+CFLAGS+= -DEABI -DARM_EABI
+
+include Makefile.common

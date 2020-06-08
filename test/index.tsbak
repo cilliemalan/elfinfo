@@ -1,0 +1,41 @@
+import * as fs from 'fs';
+
+async function run() {
+    const files = await fs.promises.readdir(__dirname);
+    const fns = files.filter(f => /.*\.test\.js$/.test(f))
+        .map(f => {
+            try {
+                return require(`./${f}`).default;
+            } catch (e) {
+                return null;
+            }
+        })
+        .filter(f => f);
+
+    for (let i = 0; i < fns.length; i++) {
+        const ob = fns[i];
+        for (const key in ob) {
+            if (ob.hasOwnProperty(key)) {
+                const element = ob[key];
+                process.stdout.write(`${key} -> `);
+
+                try {
+                    const result = element();
+                    if (result instanceof Promise) {
+                        await result;
+                    }
+                    process.stdout.write("\u001b[32mPASS\u001b[0m\n");
+                } catch (ex) {
+                    process.stdout.write("\u001b[31mFAIL\u001b[0m\n");
+                    process.stdout.write(`${ex}\n`);
+                    console.trace()
+                }
+            }
+        }
+    }
+}
+
+
+
+
+run().catch(e => console.error(e));

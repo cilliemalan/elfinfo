@@ -1,0 +1,8 @@
+CC=riscv-none-embed-gcc
+PLATFORM=riscv-eabi
+CFLAGS+= --specs=nosys.specs -ffunction-sections -fdata-sections -Wno-psabi -march=rv32imafd
+CFLAGS+= -fno-exceptions -fno-rtti -fno-threadsafe-statics -fno-use-cxa-atexit
+CFLAGS+= -T riscv.ld
+CFLAGS+= -DEABI -DRISCV_EABI
+
+include Makefile.common

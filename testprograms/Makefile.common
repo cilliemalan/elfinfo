@@ -1,0 +1,28 @@
+
+DEPS=src/factorial.h
+OUTDIR=bin/$(PLATFORM)
+OBJDIR=obj/$(PLATFORM)
+SRCDIR=src
+OUTPUT=$(OUTDIR)/program
+SOURCES = factorial.cpp main.cpp syscalls.cpp startup.cpp vectortable.cpp
+LDFLAGS+= -Wl,--gc-sections
+
+SOURCEFILES = $(addprefix $(SRCDIR)/,$(SOURCES))
+OBJS = $(addprefix $(OBJDIR)/,$(addsuffix .o,$(basename $(SOURCES))))
+
+all: $(OUTDIR) $(OBJDIR) $(OUTPUT)
+
+$(OBJDIR):
+	mkdir -p $@
+$(OUTDIR):
+	mkdir -p $@
+
+.PHONY: all dirs
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(DEPS)
+	mkdir -p $(@D)
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(OUTPUT): $(OBJS)
+	mkdir -p $(@D)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
