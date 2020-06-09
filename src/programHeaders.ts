@@ -1,5 +1,6 @@
 import * as fs from "fs";
-import {ELFProgramHeaderEntry} from './types';
+import { ELFProgramHeaderEntry } from './types';
+import { programHeaderEntryTypeToString, programHeaderFlagsToString } from './strings';
 
 
 export async function readProgramHeaderEntries(fh: fs.promises.FileHandle,
