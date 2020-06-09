@@ -38,11 +38,12 @@ export function debug(file: ELFFile): string {
 
             result += '\n\nProgram Header Entries:\n\n';
             if (file.bits == 32) {
-                result += 'Type                 Offset     VirtAddr   PhysAddr   FileSize   MemSiz     Align      Flags\n';
+                result += '    #   Type                 Offset     VirtAddr   PhysAddr   FileSize   MemSiz     Align      Flags\n';
             } else {
-                result += 'Type                 Offset             VirtAddr           PhysAddr           FileSize           MemSiz             Align      Flags\n';
+                result += '    #   Type                 Offset             VirtAddr           PhysAddr           FileSize           MemSiz             Align      Flags\n';
             }
             for (const header of file.programHeaderEntries) {
+                result += `    ${header.index.toString().padEnd(3)} `
                 result += `${header.typeDescription.padEnd(20)} `;
                 result += `${toHex(header.offset, addrpad)} `;
                 result += `${toHex(header.vaddr, addrpad)} `;
