@@ -593,8 +593,10 @@ export async function open(path: string): Promise<ElfOpenResult> {
         elf: null
     };
 
+    let fh: fs.promises.FileHandle;
+
     try {
-        const fh = await fs.promises.open(path, "r");
+        fh = await fs.promises.open(path, "r");
 
         const { size } = await fh.stat();
         if (size <= 0x40) {
@@ -606,7 +608,7 @@ export async function open(path: string): Promise<ElfOpenResult> {
 
             const magic = 0x464c457f;
             if (eident.readInt32LE(0) !== magic) {
-                result.warnings.push("Not a valid ELF file");
+                result.warnings.push("Not a valid ELF file. The file does not start with 0x7f ELF.");
             }
 
             const eiClass = eident.readUInt8(4);
@@ -616,15 +618,15 @@ export async function open(path: string): Promise<ElfOpenResult> {
             const eiAbiVer = eident.readUInt8(8);
 
             if (eiClass < 1 || eiClass > 2) {
-                result.errors.push("Not a valid ELF file. Class was invalid");
+                result.errors.push("Not a valid ELF file. Class is invalid");
             }
 
             if (eiData < 1 || eiData > 2) {
-                result.errors.push("Not a valid ELF file. Endianness was invalid");
+                result.errors.push("Not a valid ELF file. Endianness is invalid");
             }
 
             if (eiVer != 1) {
-                result.warnings.push("Not a valid ELF file. Version was invalid");
+                result.warnings.push("Not a valid ELF file. Version is invalid");
             }
 
             if (result.errors.length == 0) {
@@ -722,8 +724,13 @@ export async function open(path: string): Promise<ElfOpenResult> {
         result.errors.push(`Exception caught: ${e.toString()}`);
     }
 
-    if (!result.elf && result.errors.length == 0) {
-        result.errors.push('Unspecified error');
+    // close the file
+    if (fh) {
+        try {
+            await fh.close();
+        } catch (e) {
+            result.errors.push(`Exception caught: ${e.toString()}`);
+        }
     }
 
     return result;
