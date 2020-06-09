@@ -56,30 +56,30 @@ export function debug(file: ELFFile): string {
         }
 
         if (file.sectionHeaderEntries.length) {
-            
+
             result += '\n\n\Sections:\n\n';
             if (file.bits == 32) {
                 result += '    #   Name               Type                             Address    Offset     Size       EntSize    Link  Info  Align      Flags\n';
             } else {
                 result += '    #   Name               Type                             Address            Offset             Size               EntSize            Link  Info  Align      Flags\n';
             }
-            
-            for(const section of file.sectionHeaderEntries) {
+
+            for (const section of file.sectionHeaderEntries) {
                 result += `    ${section.index.toString().padEnd(3)} `
                 result += `${section.name.substr(0, 18).padEnd(18)} `;
                 result += `${section.typeDescription.padEnd(32)} `;
-                result += `${toHex(section.addr, addrpad) } `;
-                result += `${toHex(section.offset, addrpad) } `;
-                result += `${toHex(section.size, addrpad) } `;
-                result += `${toHex(section.entsize, addrpad) } `;
+                result += `${toHex(section.addr, addrpad)} `;
+                result += `${toHex(section.offset, addrpad)} `;
+                result += `${toHex(section.size, addrpad)} `;
+                result += `${toHex(section.entsize, addrpad)} `;
                 result += `${(section.link || '').toString().padStart(4)}  `;
                 result += `${(section.info || '').toString().padStart(4)}  `;
-                result += `${toHex(section.addralign, 8) } `;
-                result += `${section.flagsDescription }\n`;
+                result += `${toHex(section.addralign, 8)} `;
+                result += `${section.flagsDescription}\n`;
             }
         }
 
-        for(const section of file.sectionHeaderEntries) {
+        for (const section of file.sectionHeaderEntries) {
             if (section.symbols && section.symbols.length > 0) {
                 result += `\n\n\Symbols for section #${section.index} ${section.name}:\n\n`;
                 if (file.bits == 32) {
@@ -89,10 +89,10 @@ export function debug(file: ELFFile): string {
                 }
 
                 let ix = 0;
-                for(const symbol of section.symbols) {
+                for (const symbol of section.symbols) {
                     result += `    ${(ix++).toString().padStart(5)} `;
-                    result += `${toHex(symbol.value, addrpad) } `;
-                    result += `${toHex(symbol.size, 8) } `;
+                    result += `${toHex(symbol.value, addrpad)} `;
+                    result += `${toHex(symbol.size, 8)} `;
                     result += `${symbol.typeDescription.padEnd(28)} `;
                     result += `${symbol.bindingDescription.padEnd(6)} `;
                     result += `${symbol.visibilityDescription.padEnd(10)} `;
