@@ -97,6 +97,10 @@ async function readProgramHeaderEntries(fh: fs.promises.FileHandle,
     ph_off: number | BigInt, ph_entsize: number, ph_num: number,
     bits: number, bigEndian: boolean): Promise<ElfProgramHeaderEntry[]> {
 
+    if (ph_num == 0) {
+        return [];
+    }
+
     const buff = Buffer.alloc(ph_entsize);
     const readUInt32 = (bigEndian ? Buffer.prototype.readUInt32BE : Buffer.prototype.readUInt32LE).bind(buff);
     const readUInt64 = (bigEndian ? Buffer.prototype.readBigUInt64BE : Buffer.prototype.readBigUInt64LE).bind(buff);
@@ -232,6 +236,10 @@ function fillInSymbolNames(symbols: ElfSymbol[], strings?: { [index: number]: st
 async function readSectionHeaderEntries(fh: fs.promises.FileHandle,
     sh_off: number | BigInt, sh_entsize: number, sh_num: number,
     bits: number, bigEndian: boolean): Promise<ElfSectionHeaderEntry[]> {
+
+    if (sh_num == 0) {
+        return [];
+    }
 
     const buff = Buffer.alloc(sh_entsize);
     const readUInt32 = (bigEndian ? Buffer.prototype.readUInt32BE : Buffer.prototype.readUInt32LE).bind(buff);
@@ -413,20 +421,20 @@ export async function open(path: string): Promise<ElfOpenResult> {
                     result.errors.push("Invalid ELF file. Unexpected header size");
                 }
 
-                if (ePHOff < eHSize || ePHOff > size ||
-                    eSHOff < eHSize || eSHOff > size) {
+                if ((ePHNum != 0 && (ePHOff < eHSize || ePHOff > size)) ||
+                    (eSHNum != 0 && (eSHOff < eHSize || eSHOff > size))) {
                     result.errors.push("Invalid ELF file. Invalid offsets");
                 }
 
-                if ((bits == 32 && ePHEntSize < 0x20) ||
+                if (ePHNum != 0 && ((bits == 32 && ePHEntSize < 0x20) ||
                     (bits == 64 && ePHEntSize < 0x38) ||
-                    (ePHEntSize > 0xff)) {
+                    (ePHEntSize > 0xff))) {
                     result.errors.push("Invalid ELF file. Program header entry size invalid");
                 }
 
-                if ((bits == 32 && eSHEntSize < 0x28) ||
+                if (eSHNum != 0 && ((bits == 32 && eSHEntSize < 0x28) ||
                     (bits == 64 && eSHEntSize < 0x40) ||
-                    (ePHEntSize > 0xff)) {
+                    (ePHEntSize > 0xff))) {
                     result.errors.push("Invalid ELF file. Section header entry size invalid");
                 }
 
