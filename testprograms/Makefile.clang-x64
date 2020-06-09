@@ -1,5 +1,5 @@
-CC=g++
-PLATFORM=gcc-pc
+CC=clang
+PLATFORM=clang-x64
 CFLAGS+= -fPIE
 
 include Makefile.common
