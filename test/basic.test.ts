@@ -12,6 +12,15 @@ describe("Basic Operations", () => {
                 expect(elf.errors.length).toBe(0);
                 expect(elf.warnings.length).toBe(0);
             });
+
+            it(`${abi} objects should open without problems`, async () => {
+                for(const object of testprograms[abi].objects) {
+                    const elf = await elfinfo.open(object);
+                    expect(elf.success).toBe(true);
+                    expect(elf.errors.length).toBe(0);
+                    expect(elf.warnings.length).toBe(0);
+                }
+            });
         })
 
 });
