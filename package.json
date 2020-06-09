@@ -1,7 +1,26 @@
 {
   "name": "elfinfo",
-  "version": "1.0.0",
-  "main": "index.js",
+  "description": "ELF parser",
+  "version": "0.1.0-beta",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "elf",
+    "executable",
+    "ARM",
+    "x86",
+    "x86_64",
+    "i386",
+    "binary",
+    "parser",
+    "disassembler",
+    "disassembly"
+  ],
+  "author": {
+    "email": "me@chills.co.za",
+    "name": "Cillié Malan",
+    "url": "https://chills.co.za"
+  },
   "license": "MIT",
   "dependencies": {},
   "scripts": {
@@ -9,7 +28,9 @@
     "watch": "tsc -w",
     "test": "jest --detectOpenHandles",
     "coverage": "jest --forceExit --coverage --verbose --detectOpenHandles",
-    "watch-test": "npm run test -- --watchAll"
+    "watch-test": "npm run test -- --watchAll",
+    "prepare": "tsc",
+    "prepublish": "jest --detectOpenHandles && tsc"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",
@@ -24,5 +45,9 @@
     "ts-node": "^8.10.2",
     "tslint": "^6.1.2",
     "typescript": "^3.9.5"
-  }
+  },
+  "files": [
+    "dist/**/*",
+    "src/**/*"
+  ]
 }
