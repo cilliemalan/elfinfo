@@ -129,3 +129,83 @@ export enum SymbolVisibility {
     Hidden = 2,
     Protected = 3
 }
+
+export interface ElfOpenResult {
+    success: boolean;
+    errors: string[];
+    warnings: string[];
+    elf: ElfFile;
+}
+
+export interface ElfFile {
+    path: string;
+    bits: number;
+    abi: ABI;
+    abiDescription: string;
+    type: ObjectType;
+    typeDescription: string;
+    isa: ISA;
+    isaDescription: string;
+    flags: number;
+    flagsDescription: string;
+    entryPoint: number;
+    programHeaderOffset: number;
+    sectionHeaderOffset: number;
+    programHeaderEntrySize: number;
+    numProgramHeaderEntries: number;
+    sectionHeaderEntrySize: number;
+    numSectionHeaderEntries: number;
+    shstrIndex: number;
+    programHeaderEntries: ElfProgramHeaderEntry[];
+    sectionHeaderEntries: ElfSectionHeaderEntry[];
+}
+
+export interface ElfProgramHeaderEntry {
+    index: number;
+    type: ProgramHeaderEntryType;
+    typeDescription: string;
+    flags: number;
+    flagsDescription: string;
+    offset: number;
+    vaddr: number;
+    paddr: number;
+    filesz: number;
+    memsz: number;
+    align: number;
+}
+
+export interface ElfSectionHeaderEntry {
+    index: number;
+    nameix: number;
+    name: string;
+    type: SectionHeaderEntryType;
+    typeDescription: string;
+    flags: number;
+    flagsDescription: string;
+    addr: number;
+    offset: number;
+    size: number;
+    link: number;
+    info: number;
+    addralign: number;
+    entsize: number;
+    strings?: { [index: number]: string };
+    symbols?: ElfSymbol[];
+}
+
+export interface ElfSymbol {
+    nameix: number;
+    name: string;
+    value: number;
+    size: number;
+    info: number;
+    type: number;
+    typeDescription: string;
+    binding: number;
+    bindingDescription: string;
+    other: number;
+    visibility: number;
+    visibilityDescription: string;
+    shndx: number;
+    shndxDescription: string;
+}
