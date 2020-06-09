@@ -9,6 +9,28 @@ import {
 
 const MAX_SECTION_LOAD_SIZE = 0x1000000;
 
+function getString(strings: { [index: number]: string; }, index: number) {
+
+    let str = strings[index];
+    if (!str) {
+        // both GCC and clang have a tendency to
+        // point to the middle of a string if the
+        // end part is what's needed
+        for (const key in strings) {
+            const kv = parseInt(key);
+            if (kv < index) {
+                const ss = strings[kv];
+                if (kv + ss.length > index) {
+                    str = ss.substr(index - kv);
+                    break;
+                }
+            }
+        }
+    }
+
+    return str;
+}
+
 async function readStringSection(fh: fs.promises.FileHandle, offset: number, size: number): Promise<{ [index: number]: string }> {
     const tmp = Buffer.alloc(size);
     await fh.read(tmp, 0, size, offset);
@@ -189,7 +211,7 @@ function fillInSectionHeaderNames(sections: ELFSectionHeaderEntry[], eSHStrNdx: 
                 if (v.nameix == 0) {
                     v.name = "<null>";
                 } else {
-                    const name = strs[v.nameix];
+                    const name = getString(strs, v.nameix);
                     if (name) {
                         v.name = name;
                     }
