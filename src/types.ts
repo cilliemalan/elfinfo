@@ -130,14 +130,14 @@ export enum SymbolVisibility {
     Protected = 3
 }
 
-export interface ElfOpenResult {
+export interface ELFOpenResult {
     success: boolean;
     errors: string[];
     warnings: string[];
-    elf: ElfFile;
+    elf: ELFFile;
 }
 
-export interface ElfFile {
+export interface ELFFile {
     path: string;
     bits: number;
     abi: ABI;
@@ -156,11 +156,11 @@ export interface ElfFile {
     sectionHeaderEntrySize: number;
     numSectionHeaderEntries: number;
     shstrIndex: number;
-    programHeaderEntries: ElfProgramHeaderEntry[];
-    sectionHeaderEntries: ElfSectionHeaderEntry[];
+    programHeaderEntries: ELFProgramHeaderEntry[];
+    sectionHeaderEntries: ELFSectionHeaderEntry[];
 }
 
-export interface ElfProgramHeaderEntry {
+export interface ELFProgramHeaderEntry {
     index: number;
     type: ProgramHeaderEntryType;
     typeDescription: string;
@@ -174,7 +174,7 @@ export interface ElfProgramHeaderEntry {
     align: number;
 }
 
-export interface ElfSectionHeaderEntry {
+export interface ELFSectionHeaderEntry {
     index: number;
     nameix: number;
     name: string;
@@ -190,10 +190,10 @@ export interface ElfSectionHeaderEntry {
     addralign: number;
     entsize: number;
     strings?: { [index: number]: string };
-    symbols?: ElfSymbol[];
+    symbols?: ELFSymbol[];
 }
 
-export interface ElfSymbol {
+export interface ELFSymbol {
     nameix: number;
     name: string;
     value: number;

@@ -1,10 +1,10 @@
 import * as fs from "fs";
 import {
-    ElfSymbol, ElfSectionHeaderEntry, SectionHeaderEntryType
+    ELFSymbol, ELFSectionHeaderEntry, SectionHeaderEntryType
 } from "./types";
 import {
     symbolBindingToString, symbolTypeToString, symbolVisibilityToString,
-    sectionFlagsToString, shndxToString, SectionHeaderEntryTypeToString
+    sectionFlagsToString, shndxToString, sectionHeaderEntryTypeToString
 } from "./strings";
 
 const MAX_SECTION_LOAD_SIZE = 0x1000000;
@@ -28,7 +28,7 @@ async function readStringSection(fh: fs.promises.FileHandle, offset: number, siz
     return strings;
 }
 
-async function readSymbolsSection(fh: fs.promises.FileHandle, offset: number, size: number, entsize: number, bigEndian: boolean, bits: number): Promise<ElfSymbol[]> {
+async function readSymbolsSection(fh: fs.promises.FileHandle, offset: number, size: number, entsize: number, bigEndian: boolean, bits: number): Promise<ELFSymbol[]> {
 
     const tmp = Buffer.alloc(entsize);
     const readUint8 = Buffer.prototype.readUInt8.bind(tmp);
@@ -38,7 +38,7 @@ async function readSymbolsSection(fh: fs.promises.FileHandle, offset: number, si
 
     const num = size / entsize;
     let ix = 0;
-    const symbols: ElfSymbol[] = [];
+    const symbols: ELFSymbol[] = [];
     for (let i = 0; i < num; i++) {
         await fh.read(tmp, 0, entsize, offset + i * entsize);
         let ix = 0;
@@ -85,7 +85,7 @@ async function readSymbolsSection(fh: fs.promises.FileHandle, offset: number, si
     return symbols;
 }
 
-function fillInSymbolNames(symbols: ElfSymbol[], strings?: { [index: number]: string; }) {
+function fillInSymbolNames(symbols: ELFSymbol[], strings?: { [index: number]: string; }) {
     if (!strings) return;
 
     for (let i = 0; i < symbols.length; i++) {
@@ -95,7 +95,7 @@ function fillInSymbolNames(symbols: ElfSymbol[], strings?: { [index: number]: st
 
 export async function readSectionHeaderEntries(fh: fs.promises.FileHandle,
     sh_off: number | BigInt, sh_entsize: number, sh_num: number,
-    bits: number, bigEndian: boolean, eSHStrNdx: number): Promise<ElfSectionHeaderEntry[]> {
+    bits: number, bigEndian: boolean, eSHStrNdx: number): Promise<ELFSectionHeaderEntry[]> {
 
     if (sh_num == 0) {
         return [];
@@ -105,7 +105,7 @@ export async function readSectionHeaderEntries(fh: fs.promises.FileHandle,
     const readUInt32 = (bigEndian ? Buffer.prototype.readUInt32BE : Buffer.prototype.readUInt32LE).bind(buff);
     const readUInt64 = (bigEndian ? Buffer.prototype.readBigUInt64BE : Buffer.prototype.readBigUInt64LE).bind(buff);
 
-    const result: ElfSectionHeaderEntry[] = new Array(sh_num);
+    const result: ELFSectionHeaderEntry[] = new Array(sh_num);
 
     for (let i = 0; i < sh_num; i++) {
         await fh.read(buff, 0, sh_entsize, (sh_off as number) + i * sh_entsize);
@@ -135,12 +135,12 @@ export async function readSectionHeaderEntries(fh: fs.promises.FileHandle,
             entsize = Number(readUInt64(ix)); ix += 4;
         }
 
-        const section: ElfSectionHeaderEntry = {
+        const section: ELFSectionHeaderEntry = {
             index: i,
             name: "",
             nameix: name,
             type,
-            typeDescription: SectionHeaderEntryTypeToString(type),
+            typeDescription: sectionHeaderEntryTypeToString(type),
             flags,
             flagsDescription: sectionFlagsToString(flags),
             addr,
@@ -181,7 +181,7 @@ export async function readSectionHeaderEntries(fh: fs.promises.FileHandle,
     return result;
 }
 
-function fillInSectionHeaderNames(sections: ElfSectionHeaderEntry[], eSHStrNdx: number) {
+function fillInSectionHeaderNames(sections: ELFSectionHeaderEntry[], eSHStrNdx: number) {
     if (eSHStrNdx < sections.length) {
         const strs = sections[eSHStrNdx] && sections[eSHStrNdx].strings;
         if (strs) {

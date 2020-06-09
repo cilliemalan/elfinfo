@@ -4,7 +4,7 @@ import {
     SymbolType, SymbolBinding, SymbolVisibility
 } from './types';
 
-export function ISAToString(isa: ISA): string {
+export function isaToString(isa: ISA): string {
     switch (isa) {
         case ISA.IA64: return 'IA-64';
         case ISA.RiscV: return 'RISC-V';
@@ -13,7 +13,7 @@ export function ISAToString(isa: ISA): string {
     }
 }
 
-export function ABIToString(abi: ABI): string {
+export function abiToString(abi: ABI): string {
     switch (abi) {
         case ABI.GNUHurd: return 'GNU Hurd';
         case ABI.NovelloModesto: return 'Novello Modesto';
@@ -25,11 +25,11 @@ export function ABIToString(abi: ABI): string {
     }
 }
 
-export function ObjectTypeToString(objectType: ObjectType): string {
+export function objectTypeToString(objectType: ObjectType): string {
     return ObjectType[objectType] || objectType.toString();
 }
 
-export function ProgramHeaderEntryTypeToString(programHeaderEntryType: ProgramHeaderEntryType): string {
+export function programHeaderEntryTypeToString(programHeaderEntryType: ProgramHeaderEntryType): string {
     switch (programHeaderEntryType) {
         case ProgramHeaderEntryType.ProgramHeaderTable:
             return 'Program Header Table';
@@ -38,7 +38,7 @@ export function ProgramHeaderEntryTypeToString(programHeaderEntryType: ProgramHe
     }
 }
 
-export function SectionHeaderEntryTypeToString(sectionHeaderEntryType: SectionHeaderEntryType): string {
+export function sectionHeaderEntryTypeToString(sectionHeaderEntryType: SectionHeaderEntryType): string {
     switch (sectionHeaderEntryType) {
         case SectionHeaderEntryType.Null: return 'NULL section';
         case SectionHeaderEntryType.ProgBits: return 'Prog bits';

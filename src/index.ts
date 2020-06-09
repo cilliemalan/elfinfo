@@ -1,24 +1,12 @@
 import * as fs from "fs";
-import {
-    ABIToString, ISAToString, ObjectTypeToString, ProgramHeaderEntryTypeToString,
-    SectionHeaderEntryTypeToString, elfFlagsToString, programHeaderFlagsToString, sectionFlagsToString,
-    shndxToString, symbolBindingToString, symbolTypeToString, symbolVisibilityToString
-} from "./strings";
-import {
-    ABI, ISA, ObjectType, ProgramHeaderEntryType, SectionHeaderEntryType,
-    SymbolBinding, SymbolType, SymbolVisibility,
-    ElfFile, ElfOpenResult, ElfProgramHeaderEntry, ElfSectionHeaderEntry, ElfSymbol
-} from "./types";
-import {
-    readProgramHeaderEntries
-} from "./programHeaders";
-import {
-    readSectionHeaderEntries
-} from "./sections";
+import { abiToString, isaToString, objectTypeToString, elfFlagsToString } from "./strings";
+import { ABI, ISA, ObjectType, ELFOpenResult } from "./types";
+import { readProgramHeaderEntries } from "./programHeaders";
+import { readSectionHeaderEntries } from "./sections";
 
-export async function open(path: string): Promise<ElfOpenResult> {
+export async function open(path: string): Promise<ELFOpenResult> {
 
-    const result: ElfOpenResult = {
+    const result: ELFOpenResult = {
         success: false,
         errors: [],
         warnings: [],
@@ -128,11 +116,11 @@ export async function open(path: string): Promise<ElfOpenResult> {
                         path,
                         bits,
                         abi,
-                        abiDescription: ABIToString(abi),
+                        abiDescription: abiToString(abi),
                         isa,
-                        isaDescription: ISAToString(isa),
+                        isaDescription: isaToString(isa),
                         type,
-                        typeDescription: ObjectTypeToString(type),
+                        typeDescription: objectTypeToString(type),
                         flags: eFlags,
                         flagsDescription: elfFlagsToString(isa, eFlags),
                         entryPoint: eEntry,
@@ -165,3 +153,6 @@ export async function open(path: string): Promise<ElfOpenResult> {
 
     return result;
 }
+
+export * from './types';
+export * from './strings';

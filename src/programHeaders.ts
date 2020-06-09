@@ -1,10 +1,10 @@
 import * as fs from "fs";
-import {ElfProgramHeaderEntry} from './types';
+import {ELFProgramHeaderEntry} from './types';
 
 
 export async function readProgramHeaderEntries(fh: fs.promises.FileHandle,
     ph_off: number | BigInt, ph_entsize: number, ph_num: number,
-    bits: number, bigEndian: boolean): Promise<ElfProgramHeaderEntry[]> {
+    bits: number, bigEndian: boolean): Promise<ELFProgramHeaderEntry[]> {
 
     if (ph_num == 0) {
         return [];
@@ -43,7 +43,7 @@ export async function readProgramHeaderEntries(fh: fs.promises.FileHandle,
         result[i] = {
             index: i,
             type,
-            typeDescription: ProgramHeaderEntryTypeToString(type),
+            typeDescription: programHeaderEntryTypeToString(type),
             flags,
             flagsDescription: programHeaderFlagsToString(flags),
             offset,
