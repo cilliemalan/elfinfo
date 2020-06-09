@@ -142,13 +142,20 @@ export interface ELFOpenResult {
 
 export interface ELFFile {
     path: string;
+    class: number;
+    classDescription: string;
+    data: number;
+    dataDescription: string;
+    version: number;
     bits: number;
     abi: ABI;
     abiDescription: string;
+    abiVersion: number;
     type: ObjectType;
     typeDescription: string;
     isa: ISA;
     isaDescription: string;
+    isaVersion: number;
     flags: number;
     flagsDescription: string;
     entryPoint: number;

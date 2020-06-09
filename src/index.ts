@@ -114,11 +114,18 @@ export async function open(path: string): Promise<ELFOpenResult> {
 
                     result.elf = {
                         path,
+                        class: eiClass,
+                        classDescription: eiClass == 1 ? 'ELF32' : 'ELF64',
+                        data: eiData,
+                        dataDescription: eiData == 1 ? 'Little endian' : 'Big endian',
+                        version: eiVer,
                         bits,
                         abi,
+                        abiVersion: eiAbiVer,
                         abiDescription: abiToString(abi),
                         isa,
                         isaDescription: isaToString(isa),
+                        isaVersion: eVersion,
                         type,
                         typeDescription: objectTypeToString(type),
                         flags: eFlags,
