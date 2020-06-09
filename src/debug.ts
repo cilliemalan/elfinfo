@@ -1,4 +1,4 @@
-import { ELFFile } from './types';
+import { ELFFile, SectionHeaderEntryType } from './types';
 
 function toHex(n: number | BigInt, padamount: number = 0) {
     const hexchars = n.toString(16);
@@ -59,13 +59,13 @@ export function debug(file: ELFFile): string {
             
             result += '\n\n\Sections:\n\n';
             if (file.bits == 32) {
-                result += '#   Name               Type                             Address    Offset     Size       EntSize    Link  Info  Align      Flags\n';
+                result += '    #   Name               Type                             Address    Offset     Size       EntSize    Link  Info  Align      Flags\n';
             } else {
-                result += '#   Name               Type                             Address            Offset             Size               EntSize            Link  Info  Align      Flags\n';
+                result += '    #   Name               Type                             Address            Offset             Size               EntSize            Link  Info  Align      Flags\n';
             }
             
             for(const section of file.sectionHeaderEntries) {
-                result += `${section.index.toString().padEnd(3)} `
+                result += `    ${section.index.toString().padEnd(3)} `
                 result += `${section.name.substr(0, 18).padEnd(18)} `;
                 result += `${section.typeDescription.padEnd(32)} `;
                 result += `${toHex(section.addr, addrpad) } `;
@@ -78,6 +78,29 @@ export function debug(file: ELFFile): string {
                 result += `${section.flagsDescription }\n`;
             }
         }
+
+        for(const section of file.sectionHeaderEntries) {
+            if (section.symbols && section.symbols.length > 0) {
+                result += `\n\n\Symbols for section #${section.index} ${section.name}:\n\n`;
+                if (file.bits == 32) {
+                    result += '      #   Value      Size       Type                         Bind   Visibility Name\n';
+                } else {
+                    result += '      #   Value              Size       Type                         Bind   Visibility Name\n';
+                }
+
+                let ix = 0;
+                for(const symbol of section.symbols) {
+                    result += `    ${(ix++).toString().padStart(5)} `;
+                    result += `${toHex(symbol.value, addrpad) } `;
+                    result += `${toHex(symbol.size, 8) } `;
+                    result += `${symbol.typeDescription.padEnd(28)} `;
+                    result += `${symbol.bindingDescription.padEnd(6)} `;
+                    result += `${symbol.visibilityDescription.padEnd(10)} `;
+                    result += `${symbol.name}\n`;
+                }
+            }
+        }
+
     } else {
         result += "<null>";
     }
