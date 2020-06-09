@@ -4,20 +4,19 @@ A javascript library to parse information from ELF files. Has basic functionalit
 
 ## usage
 
-```
+```js
 import {open} from 'elfinfo';
 
 // Parse the specified ELF file. the argument
 // can also be a buffer or file handle.
 const elfdata = await open('someelffile');
-
 ```
 
 The `open` function above will parse the ELF file header, program headers, and sections. It will also
 read the symbol table and strings. A debug function is also provided, that spits out readelf/objdump
 like stuff.
 
-```
+```js
 import {open,debug} from 'elfinfo';
 
 // read the ELF file
