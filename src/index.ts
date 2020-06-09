@@ -1,10 +1,12 @@
-import * as fs from "fs";
 import { abiToString, isaToString, objectTypeToString, elfFlagsToString } from "./strings";
 import { ABI, ISA, ObjectType, ELFOpenResult } from "./types";
 import { readProgramHeaderEntries } from "./programHeaders";
 import { readSectionHeaderEntries } from "./sections";
+import { Reader } from "./reader";
+import * as reader from "./reader";
 
-export async function open(path: string): Promise<ELFOpenResult> {
+
+async function openInternal(reader: Reader): Promise<ELFOpenResult> {
 
     const result: ELFOpenResult = {
         success: false,
@@ -13,18 +15,15 @@ export async function open(path: string): Promise<ELFOpenResult> {
         elf: null
     };
 
-    let fh: fs.promises.FileHandle;
-
     try {
-        fh = await fs.promises.open(path, "r");
 
-        const { size } = await fh.stat();
+        const size = await reader.size();
         if (size <= 0x40) {
             result.errors.push("Not a valid ELF file. Too small.");
         } else {
 
             var eident = Buffer.alloc(16);
-            await fh.read(eident, 0, 16);
+            await reader.read(eident, 0, 16);
 
             const magic = 0x464c457f;
             if (eident.readInt32LE(0) !== magic) {
@@ -56,7 +55,7 @@ export async function open(path: string): Promise<ELFOpenResult> {
                 const abi = eiAbi as ABI;
                 const sizeLeft = bits == 32 ? 0x24 : 0x30;
                 const eheader = Buffer.alloc(sizeLeft);
-                await fh.read(eheader, 0, sizeLeft);
+                await reader.read(eheader, 0, sizeLeft);
                 const readUInt16 = (bigEndian ? Buffer.prototype.readUInt16BE : Buffer.prototype.readUInt16LE).bind(eheader);
                 const readUInt32 = (bigEndian ? Buffer.prototype.readUInt32BE : Buffer.prototype.readUInt32LE).bind(eheader);
                 const readUInt64 = (bigEndian ? Buffer.prototype.readBigUInt64BE : Buffer.prototype.readBigUInt64LE).bind(eheader);
@@ -109,11 +108,11 @@ export async function open(path: string): Promise<ELFOpenResult> {
                     const type = eType as ObjectType;
                     const isa = eMachine as ISA;
 
-                    const programHeaderEntries = await readProgramHeaderEntries(fh, ePHOff, ePHEntSize, ePHNum, bits, bigEndian);
-                    const sectionHeaderEntries = await readSectionHeaderEntries(fh, eSHOff, eSHEntSize, eSHNum, bits, bigEndian, eSHStrNdx);
+                    const programHeaderEntries = await readProgramHeaderEntries(reader, ePHOff, ePHEntSize, ePHNum, bits, bigEndian);
+                    const sectionHeaderEntries = await readSectionHeaderEntries(reader, eSHOff, eSHEntSize, eSHNum, bits, bigEndian, eSHStrNdx);
 
                     result.elf = {
-                        path,
+                        path: null,
                         class: eiClass,
                         classDescription: eiClass == 1 ? 'ELF32' : 'ELF64',
                         data: eiData,
@@ -150,15 +149,45 @@ export async function open(path: string): Promise<ELFOpenResult> {
     }
 
     // close the file
-    if (fh) {
+    if (reader) {
         try {
-            await fh.close();
+            await reader.close();
         } catch (e) {
             result.errors.push(`Exception caught: ${e.toString()}`);
         }
     }
 
     return result;
+}
+
+export function open(pathOrDataOrFile: string | Buffer | Object, callback: (result: ELFOpenResult) => void | null = null): Promise<ELFOpenResult> {
+
+    let promise : Promise<ELFOpenResult>;
+
+    if (typeof pathOrDataOrFile == "string" ) {
+        promise = openInternal(reader.path(pathOrDataOrFile));
+    } else if (pathOrDataOrFile instanceof Buffer) {
+        promise =openInternal(reader.buffer(pathOrDataOrFile));
+    } else if (typeof pathOrDataOrFile == "object" && pathOrDataOrFile.constructor && pathOrDataOrFile.constructor.name == "FileHandle") {
+        promise = openInternal(reader.asyncfile(pathOrDataOrFile));
+    } else if(typeof pathOrDataOrFile == "number") {
+        promise =openInternal(reader.syncfile(pathOrDataOrFile));
+    } else {
+        promise =new Promise((resolve)=> {
+            resolve({
+                success: false,
+                errors: ['unsupported input type'],
+                warnings: [],
+                elf: null
+            });
+        })
+    }
+
+    if (callback) {
+        promise.then(callback);
+    }
+    
+    return promise;
 }
 
 export * from './types';

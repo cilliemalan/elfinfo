@@ -1,9 +1,9 @@
 import * as fs from "fs";
 import { ELFProgramHeaderEntry } from './types';
 import { programHeaderEntryTypeToString, programHeaderFlagsToString } from './strings';
+import { Reader } from './reader';
 
-
-export async function readProgramHeaderEntries(fh: fs.promises.FileHandle,
+export async function readProgramHeaderEntries(fh: Reader,
     ph_off: number | BigInt, ph_entsize: number, ph_num: number,
     bits: number, bigEndian: boolean): Promise<ELFProgramHeaderEntry[]> {
 

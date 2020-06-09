@@ -6,6 +6,7 @@ import {
     symbolBindingToString, symbolTypeToString, symbolVisibilityToString,
     sectionFlagsToString, shndxToString, sectionHeaderEntryTypeToString
 } from "./strings";
+import { Reader } from './reader';
 
 const MAX_SECTION_LOAD_SIZE = 0x1000000;
 
@@ -31,7 +32,7 @@ function getString(strings: { [index: number]: string; }, index: number) {
     return str;
 }
 
-async function readStringSection(fh: fs.promises.FileHandle, offset: number, size: number): Promise<{ [index: number]: string }> {
+async function readStringSection(fh: Reader, offset: number, size: number): Promise<{ [index: number]: string }> {
     const tmp = Buffer.alloc(size);
     await fh.read(tmp, 0, size, offset);
     let ix = 0;
@@ -50,7 +51,7 @@ async function readStringSection(fh: fs.promises.FileHandle, offset: number, siz
     return strings;
 }
 
-async function readSymbolsSection(fh: fs.promises.FileHandle, offset: number, size: number, entsize: number, bigEndian: boolean, bits: number): Promise<ELFSymbol[]> {
+async function readSymbolsSection(fh: Reader, offset: number, size: number, entsize: number, bigEndian: boolean, bits: number): Promise<ELFSymbol[]> {
 
     const tmp = Buffer.alloc(entsize);
     const readUint8 = Buffer.prototype.readUInt8.bind(tmp);
@@ -73,8 +74,7 @@ async function readSymbolsSection(fh: fs.promises.FileHandle, offset: number, si
             info = readUint8(ix); ix += 1;
             other = readUint8(ix); ix += 1;
             shndx = readUInt16(ix); ix += 2;
-        }
-        else {
+        } else {
             name = readUInt32(ix); ix += 4;
             info = readUint8(ix); ix += 1;
             other = readUint8(ix); ix += 1;
@@ -115,7 +115,7 @@ function fillInSymbolNames(symbols: ELFSymbol[], strings?: { [index: number]: st
     }
 }
 
-export async function readSectionHeaderEntries(fh: fs.promises.FileHandle,
+export async function readSectionHeaderEntries(fh: Reader,
     sh_off: number | BigInt, sh_entsize: number, sh_num: number,
     bits: number, bigEndian: boolean, eSHStrNdx: number): Promise<ELFSectionHeaderEntry[]> {
 
