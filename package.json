@@ -4,6 +4,10 @@
   "version": "0.1.0-beta",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cilliemalan/elfinfo.git"
+  },
   "keywords": [
     "elf",
     "executable",
