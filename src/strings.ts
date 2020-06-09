@@ -93,8 +93,8 @@ export function sectionFlagsToString(flags: number | BigInt) {
 
 export function programHeaderFlagsToString(flags: number) {
     let str = [];
-    if (flags & 0x2) str.push('Write');
     if (flags & 0x4) str.push('Read');
+    if (flags & 0x2) str.push('Write');
     if (flags & 0x1) str.push('Execute');
     return str.join(' | ');
 }
