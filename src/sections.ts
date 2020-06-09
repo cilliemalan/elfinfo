@@ -111,7 +111,7 @@ function fillInSymbolNames(symbols: ELFSymbol[], strings?: { [index: number]: st
     if (!strings) return;
 
     for (let i = 0; i < symbols.length; i++) {
-        symbols[i].name = strings[symbols[i].nameix] || "";
+        symbols[i].name = getString(strings, symbols[i].nameix) || "";
     }
 }
 
