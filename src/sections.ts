@@ -192,7 +192,8 @@ export async function readSectionHeaderEntries(fh: fs.promises.FileHandle,
         const section = result[i];
         const { size, type, offset, entsize, link } = section;
 
-        if (size < MAX_SECTION_LOAD_SIZE && type === SectionHeaderEntryType.SymTab) {
+        if (size < MAX_SECTION_LOAD_SIZE &&
+            (type === SectionHeaderEntryType.SymTab || type === SectionHeaderEntryType.DynSym)) {
             section.symbols = await readSymbolsSection(fh, offset, size, entsize, bigEndian, bits);
             if (link >= 0 && link < result.length) {
                 fillInSymbolNames(section.symbols, result[link].strings);
