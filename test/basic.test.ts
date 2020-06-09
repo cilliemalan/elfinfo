@@ -8,7 +8,6 @@ describe("Basic Operations", () => {
         .forEach(abi => {
             it(`${abi} program should open without problems`, async () => {
                 const elf = await elfinfo.open(testprograms[abi].program);
-                console.log(elf);
                 expect(elf.success).toBe(true);
                 expect(elf.errors.length).toBe(0);
                 expect(elf.warnings.length).toBe(0);
