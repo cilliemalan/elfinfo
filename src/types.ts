@@ -51,7 +51,10 @@ export enum ProgramHeaderEntryType {
     Interp = 0x03,
     Note = 0x04,
     ShLib = 0x05,
-    ProgramHeaderTable = 0x06
+    ProgramHeaderTable = 0x06,
+    GnuEhFrame = 0x6474E550,
+    GnuStack = 0x6474E551,
+    GnuRelRo = 0x6474E552
 }
 
 export enum SectionHeaderEntryType {

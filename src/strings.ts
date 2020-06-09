@@ -33,6 +33,12 @@ export function programHeaderEntryTypeToString(programHeaderEntryType: ProgramHe
     switch (programHeaderEntryType) {
         case ProgramHeaderEntryType.ProgramHeaderTable:
             return 'Program Header Table';
+        case ProgramHeaderEntryType.GnuEhFrame:
+            return 'GNU EH frame';
+        case ProgramHeaderEntryType.GnuStack:
+            return 'GNU stack info';
+        case ProgramHeaderEntryType.GnuRelRo:
+            return 'GNU ro relocation';
         default:
             return ProgramHeaderEntryType[programHeaderEntryType] || programHeaderEntryType.toString();
     }
