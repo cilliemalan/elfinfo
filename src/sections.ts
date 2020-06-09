@@ -125,14 +125,14 @@ export async function readSectionHeaderEntries(fh: fs.promises.FileHandle,
             addralign = readUInt32(ix); ix += 4;
             entsize = readUInt32(ix); ix += 4;
         } else {
-            flags = Number(readUInt64(ix)); ix += 4;
-            addr = Number(readUInt64(ix)); ix += 4;
-            offset = Number(readUInt64(ix)); ix += 4;
-            size = Number(readUInt64(ix)); ix += 4;
+            flags = Number(readUInt64(ix)); ix += 8;
+            addr = Number(readUInt64(ix)); ix += 8;
+            offset = Number(readUInt64(ix)); ix += 8;
+            size = Number(readUInt64(ix)); ix += 8;
             link = readUInt32(ix); ix += 4;
             info = readUInt32(ix); ix += 4;
-            addralign = Number(readUInt64(ix)); ix += 4;
-            entsize = Number(readUInt64(ix)); ix += 4;
+            addralign = Number(readUInt64(ix)); ix += 8;
+            entsize = Number(readUInt64(ix)); ix += 8;
         }
 
         const section: ELFSectionHeaderEntry = {
