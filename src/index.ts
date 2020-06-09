@@ -163,3 +163,4 @@ export async function open(path: string): Promise<ELFOpenResult> {
 
 export * from './types';
 export * from './strings';
+export * from './debug';
