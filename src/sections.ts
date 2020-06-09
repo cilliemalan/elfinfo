@@ -177,6 +177,7 @@ export async function readSectionHeaderEntries(fh: fs.promises.FileHandle,
         result[i] = section;
     }
 
+    // find strtab
     for (let i = 0; i < sh_num; i++) {
         const section = result[i];
         const { size, type, offset } = section;
@@ -186,6 +187,7 @@ export async function readSectionHeaderEntries(fh: fs.promises.FileHandle,
         }
     }
 
+    // process all symbols
     for (let i = 0; i < sh_num; i++) {
         const section = result[i];
         const { size, type, offset, entsize, link } = section;
