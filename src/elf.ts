@@ -22,9 +22,7 @@ export async function readElf(reader: Reader): Promise<ELFOpenResult> {
         if (size <= 0x40) {
             result.errors.push("Not a valid ELF file. Too small.");
         } else {
-            const eident = new Uint8Array(16);
-            const view = new DataView(eident.buffer, eident.byteOffset, eident.byteLength);
-            await reader.read(eident, 0, 16);
+            const view = await reader.view(16);
 
             const magic = 0x464c457f;
             if (view.getInt32(0, true) !== magic) {
@@ -55,9 +53,7 @@ export async function readElf(reader: Reader): Promise<ELFOpenResult> {
                 const bigEndian = eiData !== 1;
                 const abi = eiAbi as ABI;
                 const sizeLeft = bits == 32 ? 0x24 : 0x30;
-                const eheader = new Uint8Array(sizeLeft);
-                await reader.read(eheader, 0, sizeLeft);
-                const headerview = new DataView(eheader.buffer, eheader.byteOffset, eheader.byteLength);
+                const headerview = await reader.view(sizeLeft);
                 const readUInt16 = (ix: number) => headerview.getUint16(ix, !bigEndian);
                 const readUInt32 = (ix: number) => headerview.getUint32(ix, !bigEndian);
                 const readUInt64 = (ix: number) => headerview.getBigInt64(ix, !bigEndian);

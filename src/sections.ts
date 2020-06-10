@@ -43,11 +43,7 @@ function stringRead(arr: Uint8Array, ix: number, len: number) {
 }
 
 async function readStringSection(fh: Reader, offset: number, size: number): Promise<{ [index: number]: string }> {
-    const tmp = new Uint8Array(size);
-    const view = new DataView(tmp.buffer, tmp.byteOffset, tmp.byteLength);
-    const decoder = new TextDecoder();
-
-    await fh.read(tmp, 0, size, offset);
+    const tmp = await fh.read(size, offset);
     let ix = 0;
     const strings: {
         [index: number]: string;
@@ -66,18 +62,16 @@ async function readStringSection(fh: Reader, offset: number, size: number): Prom
 
 async function readSymbolsSection(fh: Reader, offset: number, size: number, entsize: number, bigEndian: boolean, bits: number): Promise<ELFSymbol[]> {
 
-    const tmp = new Uint8Array(entsize);
-    const view = new DataView(tmp.buffer, tmp.byteOffset, tmp.byteLength);
-    const readUint8 = view.getUint8.bind(view);
-    const readUInt16 = (ix: number) => view.getUint16(ix, !bigEndian);
-    const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);
-    const readUInt64 = (ix: number) => view.getBigInt64(ix, !bigEndian);
-
     const num = size / entsize;
     let ix = 0;
     const symbols: ELFSymbol[] = [];
     for (let i = 0; i < num; i++) {
-        await fh.read(tmp, 0, entsize, offset + i * entsize);
+        const view = await fh.view(entsize, offset + i * entsize);
+        const readUint8 = view.getUint8.bind(view);
+        const readUInt16 = (ix: number) => view.getUint16(ix, !bigEndian);
+        const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);
+        const readUInt64 = (ix: number) => view.getBigInt64(ix, !bigEndian);
+
         let ix = 0;
 
         let name, info, other, shndx, value, size;
@@ -137,15 +131,13 @@ export async function readSectionHeaderEntries(fh: Reader,
         return [];
     }
 
-    const buff = new Uint8Array(sh_entsize);
-    const view = new DataView(buff.buffer, buff.byteOffset, buff.byteLength);
-    const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);
-    const readUInt64 = (ix: number) => view.getBigInt64(ix, !bigEndian);
 
     const result: ELFSectionHeaderEntry[] = new Array(sh_num);
 
     for (let i = 0; i < sh_num; i++) {
-        await fh.read(buff, 0, sh_entsize, (sh_off as number) + i * sh_entsize);
+        const view = await fh.view(sh_entsize, (sh_off as number) + i * sh_entsize);
+        const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);
+        const readUInt64 = (ix: number) => view.getBigInt64(ix, !bigEndian);
 
         const name = readUInt32(0);
         const type = readUInt32(4);

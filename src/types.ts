@@ -168,6 +168,23 @@ export interface ELFFile {
     shstrIndex: number;
     programHeaderEntries: ELFProgramHeaderEntry[];
     sectionHeaderEntries: ELFSectionHeaderEntry[];
+
+    /*
+    getSymbols(): ELFSymbol[];
+    getSymbolsInSection(sectionOrIndex: ELFSectionHeaderEntry | number): ELFSymbol[];
+    getSymbolsInSegment(segmentOrIndex: ELFProgramHeaderEntry | number): ELFSymbol[];
+    getSectionsInSegment(segmentOrIndex: ELFProgramHeaderEntry | number): ELFSectionHeaderEntry[];
+    getSectionIndexForSymbol(symbol: ELFSymbol): number;
+    getSegmentIndexForSymbol(symbol: ELFSymbol): number;
+    getSectionForSymbol(symbol: ELFSymbol): ELFSectionHeaderEntry;
+    getSegmentForSymbol(symbol: ELFSymbol): ELFProgramHeaderEntry;
+    getSymbolAtVirtualMemoryLocation(location: number | BigInt): ELFSymbol;
+    getSymbolAtPhysicalMemoryLocation(location: number | BigInt): ELFSymbol;
+    getSectionAtVirtualMemoryLocation(location: number | BigInt): ELFSectionHeaderEntry;
+    getSectionAtPhysicalMemoryLocation(location: number | BigInt): ELFSectionHeaderEntry;
+    getSegmentAtVirtualMemoryLocation(location: number | BigInt): ELFProgramHeaderEntry;
+    getSegmentAtPhysicalMemoryLocation(location: number | BigInt): ELFProgramHeaderEntry;
+    */
 }
 
 export interface ELFProgramHeaderEntry {

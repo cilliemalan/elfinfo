@@ -11,16 +11,12 @@ export async function readProgramHeaderEntries(fh: Reader,
         return [];
     }
 
-    const buff = new ArrayBuffer(ph_entsize);
-    const view = new DataView(buff);
-    const arr = new Uint8Array(buff);
-    const readUInt32 = (ix:number) => view.getUint32(ix, !bigEndian);
-    const readUInt64 = (ix:number) => view.getBigUint64(ix, !bigEndian);
-
     const result = new Array(ph_num);
 
     for (let i = 0; i < ph_num; i++) {
-        await fh.read(arr, 0, ph_entsize, (ph_off as number) + i * ph_entsize);
+        const view = await fh.view(ph_entsize, (ph_off as number) + i * ph_entsize);
+        const readUInt32 = (ix:number) => view.getUint32(ix, !bigEndian);
+        const readUInt64 = (ix:number) => view.getBigUint64(ix, !bigEndian);
         const type = readUInt32(0);
 
         let ix = 4;
