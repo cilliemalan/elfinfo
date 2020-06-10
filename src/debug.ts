@@ -1,4 +1,4 @@
-import { ELFFile, SectionHeaderEntryType } from './types';
+import { ELFFile, SectionHeaderEntryType, ELFOpenResult } from './types';
 
 function toHex(n: number | BigInt, padamount: number = 0) {
     const hexchars = n.toString(16);
@@ -13,9 +13,9 @@ function toHex(n: number | BigInt, padamount: number = 0) {
 
 export function debug(file: ELFFile): string {
     let result = "";
-    const addrpad = file.bits / 4;
 
     if (file) {
+        const addrpad = file.bits / 4;
         result += `Path: ${file.path}\n`;
         result += `Class:                             ${file.classDescription} (${file.class})\n`;
         result += `Bits:                              ${file.bits} bits\n`;
