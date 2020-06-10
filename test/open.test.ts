@@ -9,6 +9,8 @@ describe("Open types", () => {
 
     it(`should open a path without problems`, async () => {
         const elf = await elfinfo.open(path);
+        elf.warnings.forEach(w => console.warn(w));
+        elf.errors.forEach(e => console.error(e));
         expect(elf.success).toBe(true);
         expect(elf.errors.length).toBe(0);
         expect(elf.warnings.length).toBe(0);
@@ -18,6 +20,8 @@ describe("Open types", () => {
         const fh = fs.openSync(path, 'r');
         const elf = await elfinfo.open(fh);
         fs.closeSync(fh);
+        elf.warnings.forEach(w => console.warn(w));
+        elf.errors.forEach(e => console.error(e));
         expect(elf.success).toBe(true);
         expect(elf.errors.length).toBe(0);
         expect(elf.warnings.length).toBe(0);
@@ -27,6 +31,8 @@ describe("Open types", () => {
         const fh = await fs.promises.open(path, 'r');
         const elf = await elfinfo.open(fh);
         await fh.close();
+        elf.warnings.forEach(w => console.warn(w));
+        elf.errors.forEach(e => console.error(e));
         expect(elf.success).toBe(true);
         expect(elf.errors.length).toBe(0);
         expect(elf.warnings.length).toBe(0);
@@ -37,6 +43,8 @@ describe("Open types", () => {
         const buffer = await fh.readFile();
         await fh.close();
         const elf = await elfinfo.open(buffer);
+        elf.warnings.forEach(w => console.warn(w));
+        elf.errors.forEach(e => console.error(e));
         expect(elf.success).toBe(true);
         expect(elf.errors.length).toBe(0);
         expect(elf.warnings.length).toBe(0);
@@ -47,6 +55,8 @@ describe("Open types", () => {
         const buffer = await fh.readFile();
         await fh.close();
         const elf = await elfinfo.open(buffer.buffer.slice(buffer.byteOffset, buffer.byteLength));
+        elf.warnings.forEach(w => console.warn(w));
+        elf.errors.forEach(e => console.error(e));
         expect(elf.success).toBe(true);
         expect(elf.errors.length).toBe(0);
         expect(elf.warnings.length).toBe(0);
@@ -81,6 +91,8 @@ describe("Open types", () => {
         await fh.close();
 
         const elf = await elfinfo.open(new Blob(buffer.buffer, buffer.byteOffset, buffer.byteLength));
+        elf.warnings.forEach(w => console.warn(w));
+        elf.errors.forEach(e => console.error(e));
         expect(elf.success).toBe(true);
         expect(elf.errors.length).toBe(0);
         expect(elf.warnings.length).toBe(0);
