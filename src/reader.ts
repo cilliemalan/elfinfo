@@ -1,19 +1,14 @@
-import * as fs from 'fs';
+
 // some nastiness to get fs without causing problems
 // in either the browser or node
 const inBrowser = new Function("try {return this===window;}catch(e){ return false;}")();
 
-/*
 let fs: any;
-if (!inBrowser) {
+if (!inBrowser && require) {
     try {
-        const myrequire = new Function("return this['req'+'uire'];")();
-        if (myrequire) {
-            fs = myrequire('fs');
-        }
+        fs = require('fs');
     } catch (e) { }
 }
-*/
 
 export interface Reader {
     read<TBuffer extends Uint8Array>(buffer: TBuffer, offset?: number | null, length?: number | null, position?: number | null): Promise<{ bytesRead: number, buffer: TBuffer }>;
@@ -21,13 +16,23 @@ export interface Reader {
     close(): Promise<void>;
 }
 
+function error_reader(message: string): Reader {
+    return {
+        read: (a, b, c, d) => Promise.reject(message),
+        size: () => Promise.reject(message),
+        close: () => Promise.reject(message)
+    }
+}
+
 export function path(path: string): Reader {
+    if (!fs) return error_reader('No filesystem');
+
     let fh = fs.promises.open(path, 'r');
 
     return {
-        read: (a, b, c, d) => fh.then(x => x.read(a, b, c, d)),
-        size: () => fh.then(x => x.stat()).then((s: any) => s.size),
-        close: () => fh.then(x => x.close())
+        read: (a, b, c, d) => fh.then((x: any) => x.read(a, b, c, d)),
+        size: () => fh.then((x: any) => x.stat()).then((s: any) => s.size),
+        close: () => fh.then((x: any) => x.close())
     }
 }
 
@@ -78,6 +83,8 @@ export function buffer<TBuffer extends Uint8Array>(buffer: TBuffer): Reader {
 }
 
 export function asyncfile(fh: any): Reader {
+    if (!fs) return error_reader('No filesystem');
+
     return {
         read: fh.read.bind(fh),
         size: () => fh.stat().then((s: any) => s.size),
@@ -86,16 +93,18 @@ export function asyncfile(fh: any): Reader {
 }
 
 export function syncfile(handle: number): Reader {
+    if (!fs) return error_reader('No filesystem');
+
     return {
         read: (a, b, c, d) => new Promise((resolve, reject) =>
-            fs.read(handle, a, b, c, d, (e, bytesRead, buffer) => {
+            fs.read(handle, a, b, c, d, (e: any, bytesRead: any, buffer: any) => {
                 if (e) {
                     reject(e);
                 } else {
                     resolve({ bytesRead, buffer });
                 }
             })),
-        size: () => new Promise((resolve, reject) => fs.fstat(handle, (e, stats) => {
+        size: () => new Promise((resolve, reject) => fs.fstat(handle, (e: any, stats: any) => {
             if (e) {
                 reject(e);
             } else {
