@@ -4,6 +4,7 @@ import { readProgramHeaderEntries } from "./programHeaders";
 import { readSectionHeaderEntries } from "./sections";
 import { Reader } from "./reader";
 import { Buffer } from 'buffer';
+import { getFunctions } from "./elffunctions";
 
 export async function readElf(reader: Reader): Promise<ELFOpenResult> {
 
@@ -136,8 +137,22 @@ export async function readElf(reader: Reader): Promise<ELFOpenResult> {
                         numSectionHeaderEntries: eSHNum,
                         shstrIndex: eSHStrNdx,
                         programHeaderEntries,
-                        sectionHeaderEntries
+                        sectionHeaderEntries,
+                        ...getFunctions()
                     };
+
+                    // bind all the functions to this specific instance
+                    // TODO: do we need to?
+                    /*
+                    Object.keys(result.elf)
+                        .forEach(x=> {
+                            const elf: any = result.elf;
+                            const prop = elf[x];
+                            if (typeof prop == 'function') {
+                                elf[x] = prop.bind(elf);
+                            }
+                        })
+                    */
                     result.success = true;
                 }
             }
