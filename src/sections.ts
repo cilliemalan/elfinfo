@@ -7,8 +7,10 @@ import {
     sectionFlagsToString, shndxToString, sectionHeaderEntryTypeToString
 } from "./strings";
 import { Reader } from './reader';
+import { add, subtract, divide } from './biginthelpers';
 
 const MAX_SECTION_LOAD_SIZE = 0x1000000;
+
 
 function getString(strings: { [index: number]: string; }, index: number) {
 
@@ -42,8 +44,8 @@ function stringRead(arr: Uint8Array, ix: number, len: number) {
     }
 }
 
-async function readStringSection(fh: Reader, offset: number, size: number): Promise<{ [index: number]: string }> {
-    const tmp = await fh.read(size, offset);
+async function readStringSection(fh: Reader, offset: number | BigInt, size: number | BigInt): Promise<{ [index: number]: string }> {
+    const tmp = await fh.read(Number(size), Number(offset));
     let ix = 0;
     const strings: {
         [index: number]: string;
@@ -60,13 +62,14 @@ async function readStringSection(fh: Reader, offset: number, size: number): Prom
     return strings;
 }
 
-async function readSymbolsSection(fh: Reader, offset: number, size: number, entsize: number, bigEndian: boolean, bits: number): Promise<ELFSymbol[]> {
+async function readSymbolsSection(fh: Reader, offset: number | BigInt, size: number | BigInt, entsize: number | BigInt, bigEndian: boolean, bits: number): Promise<ELFSymbol[]> {
 
-    const num = size / entsize;
+    const num = divide(size, entsize);
     let ix = 0;
     const symbols: ELFSymbol[] = [];
     for (let i = 0; i < num; i++) {
-        const view = await fh.view(entsize, offset + i * entsize);
+        // TODO: warn if entsize or offset + i*entsize is too big. there will probably be other problems in that case though
+        const view = await fh.view(Number(entsize), Number(offset) +i * Number(entsize));
         const readUint8 = view.getUint8.bind(view);
         const readUInt16 = (ix: number) => view.getUint16(ix, !bigEndian);
         const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);
@@ -87,8 +90,8 @@ async function readSymbolsSection(fh: Reader, offset: number, size: number, ents
             info = readUint8(ix); ix += 1;
             other = readUint8(ix); ix += 1;
             shndx = readUInt16(ix); ix += 2;
-            value = Number(readUInt64(ix)); ix += 8;
-            size = Number(readUInt64(ix)); ix += 8;
+            value = readUInt64(ix); ix += 8;
+            size = readUInt64(ix); ix += 8;
         }
         const type = info & 0xf;
         const binding = info >> 4;
@@ -135,7 +138,7 @@ export async function readSectionHeaderEntries(fh: Reader,
     const result: ELFSectionHeaderEntry[] = new Array(sh_num);
 
     for (let i = 0; i < sh_num; i++) {
-        const view = await fh.view(sh_entsize, (sh_off as number) + i * sh_entsize);
+        const view = await fh.view(sh_entsize, Number(sh_off) + i * Number(sh_entsize));
         const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);
         const readUInt64 = (ix: number) => view.getBigInt64(ix, !bigEndian);
 
@@ -154,14 +157,14 @@ export async function readSectionHeaderEntries(fh: Reader,
             addralign = readUInt32(ix); ix += 4;
             entsize = readUInt32(ix); ix += 4;
         } else {
-            flags = Number(readUInt64(ix)); ix += 8;
-            addr = Number(readUInt64(ix)); ix += 8;
-            offset = Number(readUInt64(ix)); ix += 8;
-            size = Number(readUInt64(ix)); ix += 8;
+            flags = readUInt64(ix); ix += 8;
+            addr = readUInt64(ix); ix += 8;
+            offset = readUInt64(ix); ix += 8;
+            size = readUInt64(ix); ix += 8;
             link = readUInt32(ix); ix += 4;
             info = readUInt32(ix); ix += 4;
-            addralign = Number(readUInt64(ix)); ix += 8;
-            entsize = Number(readUInt64(ix)); ix += 8;
+            addralign = readUInt64(ix); ix += 8;
+            entsize = readUInt64(ix); ix += 8;
         }
 
         const section: ELFSectionHeaderEntry = {

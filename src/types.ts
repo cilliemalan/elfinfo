@@ -158,9 +158,9 @@ export interface ELFFile {
     isaVersion: number;
     flags: number;
     flagsDescription: string;
-    entryPoint: number;
-    programHeaderOffset: number;
-    sectionHeaderOffset: number;
+    entryPoint: number | BigInt;
+    programHeaderOffset: number | BigInt;
+    sectionHeaderOffset: number | BigInt;
     programHeaderEntrySize: number;
     numProgramHeaderEntries: number;
     sectionHeaderEntrySize: number;
@@ -193,12 +193,12 @@ export interface ELFProgramHeaderEntry {
     typeDescription: string;
     flags: number;
     flagsDescription: string;
-    offset: number;
-    vaddr: number;
-    paddr: number;
-    filesz: number;
-    memsz: number;
-    align: number;
+    offset: number | BigInt;
+    vaddr: number | BigInt;
+    paddr: number | BigInt;
+    filesz: number | BigInt;
+    memsz: number | BigInt;
+    align: number | BigInt;
 }
 
 export interface ELFSectionHeaderEntry {
@@ -207,15 +207,15 @@ export interface ELFSectionHeaderEntry {
     name: string;
     type: SectionHeaderEntryType;
     typeDescription: string;
-    flags: number;
+    flags: number | BigInt;
     flagsDescription: string;
-    addr: number;
-    offset: number;
-    size: number;
+    addr: number | BigInt;
+    offset: number | BigInt;
+    size: number | BigInt;
     link: number;
     info: number;
-    addralign: number;
-    entsize: number;
+    addralign: number | BigInt;
+    entsize: number | BigInt;
     strings?: { [index: number]: string };
     symbols?: ELFSymbol[];
 }
@@ -223,8 +223,8 @@ export interface ELFSectionHeaderEntry {
 export interface ELFSymbol {
     nameix: number;
     name: string;
-    value: number;
-    size: number;
+    value: number | BigInt;
+    size: number | BigInt;
     info: number;
     type: number;
     typeDescription: string;

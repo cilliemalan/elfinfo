@@ -3,7 +3,7 @@ import { ELFFile, SectionHeaderEntryType, ELFOpenResult } from './types';
 function toHex(n: number | BigInt, padamount: number = 0) {
     const hexchars = n.toString(16);
     if (padamount == 0) {
-        padamount = n instanceof BigInt ? 8 :
+        padamount = typeof n == 'bigint' ? 8 :
             hexchars.length <= 2 ? 2 :
                 hexchars.length <= 4 ? 4 :
                     8;

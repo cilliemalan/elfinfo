@@ -71,14 +71,13 @@ export function sectionHeaderEntryTypeToString(sectionHeaderEntryType: SectionHe
         case SectionHeaderEntryType.GnuVerNeed: return 'GNU version needs section';
         case SectionHeaderEntryType.GnuVerSym: return 'GNU version symbol table';
         default:
-            return SectionHeaderEntryType[sectionHeaderEntryType] || (sectionHeaderEntryType as number).toString();
+            return SectionHeaderEntryType[sectionHeaderEntryType] || Number(sectionHeaderEntryType).toString();
     }
 }
 
 export function sectionFlagsToString(flags: number | BigInt) {
-    if (flags instanceof BigInt) {
-        flags = Number(flags);
-    }
+    // no flags are more than 32 bits
+    flags = Number(flags);
 
     let str = [];
     if (flags & 0x1) str.push('Writeable');

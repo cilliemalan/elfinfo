@@ -68,9 +68,9 @@ export async function readElf(reader: Reader): Promise<ELFOpenResult> {
                     ePHOff = readUInt32(ix); ix += 4;
                     eSHOff = readUInt32(ix); ix += 4;
                 } else {
-                    eEntry = Number(readUInt64(ix)); ix += 8;
-                    ePHOff = Number(readUInt64(ix)); ix += 8;
-                    eSHOff = Number(readUInt64(ix)); ix += 8;
+                    eEntry = readUInt64(ix); ix += 8;
+                    ePHOff = readUInt64(ix); ix += 8;
+                    eSHOff = readUInt64(ix); ix += 8;
                 }
                 const eFlags = readUInt32(ix); ix += 4;
                 const eHSize = readUInt16(ix); ix += 2;
