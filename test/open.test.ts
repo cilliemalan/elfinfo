@@ -62,6 +62,32 @@ describe("Open types", () => {
         expect(elf.warnings.length).toBe(0);
     });
 
+    it(`should open a structured array without problems`, async () => {
+        const fh = await fs.promises.open(path, 'r');
+        const buffer = await fh.readFile();
+        await fh.close();
+        
+        const elf = await elfinfo.open(new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength));
+        elf.warnings.forEach(w => console.warn(w));
+        elf.errors.forEach(e => console.error(e));
+        expect(elf.success).toBe(true);
+        expect(elf.errors.length).toBe(0);
+        expect(elf.warnings.length).toBe(0);
+    });
+
+    it(`should open an ustructured array without problems`, async () => {
+        const fh = await fs.promises.open(path, 'r');
+        const buffer = await fh.readFile();
+        await fh.close();
+        
+        const elf = await elfinfo.open(Array.from(new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)));
+        elf.warnings.forEach(w => console.warn(w));
+        elf.errors.forEach(e => console.error(e));
+        expect(elf.success).toBe(true);
+        expect(elf.errors.length).toBe(0);
+        expect(elf.warnings.length).toBe(0);
+    });
+
     it(`should open a Blob without problems`, async () => {
 
         class Blob {

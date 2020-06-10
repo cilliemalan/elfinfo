@@ -98,6 +98,10 @@ export function path(path: string): Reader {
     }
 }
 
+export function array(array: Array<number>): Reader {
+    return buffer(Uint8Array.from(array));
+}
+
 export function buffer<TBuffer extends Uint8Array>(buffer: TBuffer | ArrayBuffer): Reader {
     const state: BufferState = {
         array: null,

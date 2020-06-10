@@ -13,30 +13,34 @@ function isClass(item: any, type: string) {
             item.constructor.name === type);
 }
 
-function isBuffer(item: any) {
+function isBuffer(item: any): item is Buffer {
     return isClass(item, 'Buffer');
 }
 
-function isAsyncFileHandle(item: any) {
+function isUint8Array(item: any): item is Uint8Array {
+    return isClass(item, 'Uint8Array');
+}
+
+function isAsyncFileHandle(item: any): item is FileHandle {
     return isClass(item, 'FileHandle');
 }
 
-function isArrayBuffer(item: any) {
+function isArrayBuffer(item: any): item is ArrayBuffer {
     return isClass(item, 'ArrayBuffer');
 }
 
-function isBlob(item: any) {
+function isBlob(item: any): item is Blob {
     return isClass(item, 'Blob');
 }
 
-export function open(pathOrDataOrFile: string | Buffer | ArrayBuffer | Blob | FileHandle | number, callback: (result: ELFOpenResult) => void | null = null): Promise<ELFOpenResult> {
+export function open(pathOrDataOrFile: string | Uint8Array | Buffer | ArrayBuffer | Blob | FileHandle | Array<number> | number, callback: (result: ELFOpenResult) => void | null = null): Promise<ELFOpenResult> {
 
     let promise: Promise<ELFOpenResult>;
 
     if (typeof pathOrDataOrFile == "string") {
         promise = readElf(reader.path(pathOrDataOrFile));
     } else if (isBuffer(pathOrDataOrFile)) {
-        promise = readElf(reader.buffer(<Buffer>pathOrDataOrFile));
+        promise = readElf(reader.buffer(pathOrDataOrFile));
     } else if (isAsyncFileHandle(pathOrDataOrFile)) {
         promise = readElf(reader.asyncfile(pathOrDataOrFile));
     } else if (typeof pathOrDataOrFile == "number") {
@@ -44,7 +48,11 @@ export function open(pathOrDataOrFile: string | Buffer | ArrayBuffer | Blob | Fi
     } else if (isArrayBuffer(pathOrDataOrFile)) {
         promise = readElf(reader.buffer(<ArrayBuffer>pathOrDataOrFile));
     } else if (isBlob(pathOrDataOrFile)) {
-        promise = readElf(reader.blob(<Blob>pathOrDataOrFile));
+        promise = readElf(reader.blob(pathOrDataOrFile));
+    } else if (isUint8Array(pathOrDataOrFile)) {
+        promise = readElf(reader.buffer(pathOrDataOrFile));
+    } else if (Array.isArray(pathOrDataOrFile)) {
+        promise = readElf(reader.array(pathOrDataOrFile));
     } else {
         promise = new Promise((resolve) => {
             resolve({
