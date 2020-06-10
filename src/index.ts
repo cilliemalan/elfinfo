@@ -17,6 +17,8 @@ async function openInternal(reader: Reader): Promise<ELFOpenResult> {
 
     try {
 
+        await reader.open();
+
         const size = await reader.size();
         if (size <= 0x40) {
             result.errors.push("Not a valid ELF file. Too small.");
