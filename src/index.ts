@@ -4,6 +4,8 @@ import { readProgramHeaderEntries } from "./programHeaders";
 import { readSectionHeaderEntries } from "./sections";
 import { Reader } from "./reader";
 import * as reader from "./reader";
+import { Buffer } from 'buffer';
+import { FileHandle } from "fs/promises";
 
 
 async function openInternal(reader: Reader): Promise<ELFOpenResult> {
@@ -162,20 +164,58 @@ async function openInternal(reader: Reader): Promise<ELFOpenResult> {
     return result;
 }
 
-export function open(pathOrDataOrFile: string | Buffer | Object, callback: (result: ELFOpenResult) => void | null = null): Promise<ELFOpenResult> {
+function isClass(item: any, type: string) {
+    return typeof item == "object" &&
+        item.constructor &&
+        item.constructor.name === type;
+}
 
-    let promise : Promise<ELFOpenResult>;
-
-    if (typeof pathOrDataOrFile == "string" ) {
-        promise = openInternal(reader.path(pathOrDataOrFile));
-    } else if (pathOrDataOrFile instanceof Buffer) {
-        promise =openInternal(reader.buffer(pathOrDataOrFile));
-    } else if (typeof pathOrDataOrFile == "object" && pathOrDataOrFile.constructor && pathOrDataOrFile.constructor.name == "FileHandle") {
-        promise = openInternal(reader.asyncfile(pathOrDataOrFile));
-    } else if(typeof pathOrDataOrFile == "number") {
-        promise =openInternal(reader.syncfile(pathOrDataOrFile));
+function isBuffer(item: any) {
+    if (item instanceof Buffer) {
+        return true;
     } else {
-        promise =new Promise((resolve)=> {
+        return isClass(item, 'Buffer');
+    }
+}
+
+function isAsyncFileHandle(item: any) {
+    return isClass(item, 'FileHandle');
+}
+
+function isArrayBuffer(item: any) {
+    if (item instanceof ArrayBuffer) {
+        return true;
+    } else {
+        return isClass(item, 'ArrayBuffer');
+    }
+}
+
+function isBlob(item: any) {
+    if (this && this.Blob && item instanceof this.Blob) {
+        return true;
+    } else {
+        return isClass(item, 'Blob');
+    }
+}
+
+export function open(pathOrDataOrFile: string | Buffer | ArrayBuffer | Blob | FileHandle | number, callback: (result: ELFOpenResult) => void | null = null): Promise<ELFOpenResult> {
+
+    let promise: Promise<ELFOpenResult>;
+
+    if (typeof pathOrDataOrFile == "string") {
+        promise = openInternal(reader.path(pathOrDataOrFile));
+    } else if (isBuffer(pathOrDataOrFile)) {
+        promise = openInternal(reader.buffer(<Buffer>pathOrDataOrFile));
+    } else if (isAsyncFileHandle(pathOrDataOrFile)) {
+        promise = openInternal(reader.asyncfile(pathOrDataOrFile));
+    } else if (typeof pathOrDataOrFile == "number") {
+        promise = openInternal(reader.syncfile(pathOrDataOrFile));
+    } else if (isArrayBuffer(pathOrDataOrFile)) {
+        promise = openInternal(reader.buffer(<ArrayBuffer>pathOrDataOrFile));
+    } else if (isBlob(pathOrDataOrFile)) {
+        promise = openInternal(reader.blob(<Blob>pathOrDataOrFile));
+    } else {
+        promise = new Promise((resolve) => {
             resolve({
                 success: false,
                 errors: ['unsupported input type'],
@@ -188,7 +228,7 @@ export function open(pathOrDataOrFile: string | Buffer | Object, callback: (resu
     if (callback) {
         promise.then(callback);
     }
-    
+
     return promise;
 }
 

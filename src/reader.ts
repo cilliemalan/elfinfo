@@ -1,7 +1,5 @@
 
-// some nastiness to get fs without causing problems
-
-import { promises } from "fs";
+import { Buffer } from 'buffer';
 
 // in either the browser or node
 const inBrowser = new Function("try {return this===window;}catch(e){ return false;}")();
@@ -11,6 +9,40 @@ if (!inBrowser && require) {
     try {
         fs = require('fs');
     } catch (e) { }
+}
+
+function bufferRead<TBuffer extends Uint8Array>(state: { src: Buffer, pos: number, size: number }, dest: TBuffer, offset?: number | null, length?: number | null, position?: number | null): Promise<{ bytesRead: number, buffer: TBuffer }> {
+    let updatepos = false;
+    if (position === null || position === undefined) {
+        position = state.pos;
+        updatepos = true;
+    }
+    if (offset === null || offset === undefined) {
+        offset = 0;
+    }
+    if (length === null || length === undefined) {
+        // TODO: documentation doesn't specify this behaviour.
+        length = dest.length - offset;
+    }
+    if (position <= state.size) {
+        if (position + length > state.size) {
+            length = state.size - position;
+        }
+
+        if (length > 0) {
+            state.src.copy(dest, offset, position, length + position);
+        } else {
+            length = 0;
+        }
+
+        if (updatepos) {
+            state.pos += length;
+        }
+
+        return Promise.resolve({ bytesRead: length, buffer: dest });
+    } else {
+        return Promise.reject("read past end of file");
+    }
 }
 
 export interface Reader {
@@ -42,50 +74,18 @@ export function path(path: string): Reader {
     }
 }
 
-export function buffer<TBuffer extends Uint8Array>(buffer: TBuffer): Reader {
-    const f = {
+export function buffer<TBuffer extends Uint8Array>(buffer: TBuffer | ArrayBuffer): Reader {
+    const state = {
         src: Buffer.from(buffer),
         pos: 0,
-        size: buffer.length
+        size: buffer.byteLength
     }
 
     return {
         open: () => Promise.resolve(),
-        read: <TBuffer extends Uint8Array>(dest: TBuffer, offset?: number | null, length?: number | null, position?: number | null): Promise<{ bytesRead: number, buffer: TBuffer }> => {
-            let updatepos = false;
-            if (position === null || position === undefined) {
-                position = f.pos;
-                updatepos = true;
-            }
-            if (offset === null || offset === undefined) {
-                offset = 0;
-            }
-            if (length === null || length === undefined) {
-                // TODO: documentation doesn't specify this behaviour.
-                length = dest.length - offset;
-            }
-            if (position <= f.size) {
-                if (position + length > f.size) {
-                    length = f.size - position;
-                }
-
-                if (length > 0) {
-                    f.src.copy(dest, offset, position, length + position);
-                } else {
-                    length = 0;
-                }
-
-                if (updatepos) {
-                    f.pos += length;
-                }
-
-                return Promise.resolve({ bytesRead: length, buffer: dest });
-            } else {
-                return Promise.reject("read past end of file");
-            }
-        },
-        size: () => Promise.resolve(buffer.length),
-        close: () => Promise.resolve()
+        size: () => Promise.resolve(state.size),
+        close: () => Promise.resolve(),
+        read: async (dest, offset, length, position) => bufferRead(state, dest, offset, length, position),
     }
 }
 
@@ -94,7 +94,7 @@ export function asyncfile(fh: any): Reader {
 
     return {
         // open just checks if the file handle is still valid
-        open: () => fh.stat().then(() => {}),
+        open: () => fh.stat().then(() => { }),
         read: fh.read.bind(fh),
         size: () => fh.stat().then((s: any) => s.size),
         // close does nothing since we don't own the handle
@@ -132,4 +132,22 @@ export function syncfile(handle: number): Reader {
         // close does nothing since we don't own the handle
         close: () => Promise.resolve()
     };
+}
+
+export function blob(item: Blob): Reader {
+    const state : { src: Buffer, pos: number, size: number } = {
+        src: null,
+        pos: 0,
+        size: 0
+    }
+
+    return {
+        open: () => item.arrayBuffer().then(ab=>{
+            state.src = Buffer.from(ab);
+            state.size = ab.byteLength;
+        }),
+        close: () => Promise.resolve(),
+        size: () => Promise.resolve(state.size),
+        read: async (dest, offset, length, position) => bufferRead(state, dest, offset, length, position),
+    }
 }
