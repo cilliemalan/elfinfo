@@ -1,6 +1,3 @@
-
-import { Buffer } from 'buffer';
-
 // in either the browser or node
 const inBrowser = new Function("try {return this===window;}catch(e){ return false;}")();
 
@@ -11,10 +8,17 @@ if (!inBrowser && require) {
     } catch (e) { }
 }
 
-function bufferRead<TBuffer extends Uint8Array>(state: { src: Buffer, pos: number, size: number }, dest: TBuffer, offset?: number | null, length?: number | null, position?: number | null): Promise<{ bytesRead: number, buffer: TBuffer }> {
+interface BufferState {
+    array: ArrayBuffer,
+    offset: number;
+    size: number;
+    position: number;
+}
+
+function bufferRead<TBuffer extends Uint8Array>(state: BufferState, dest: TBuffer, offset?: number | null, length?: number | null, position?: number | null): Promise<{ bytesRead: number, buffer: TBuffer }> {
     let updatepos = false;
     if (position === null || position === undefined) {
-        position = state.pos;
+        position = state.position;
         updatepos = true;
     }
     if (offset === null || offset === undefined) {
@@ -30,13 +34,13 @@ function bufferRead<TBuffer extends Uint8Array>(state: { src: Buffer, pos: numbe
         }
 
         if (length > 0) {
-            state.src.copy(dest, offset, position, length + position);
+            dest.set(new Uint8Array(state.array, state.offset + position, length), offset);
         } else {
             length = 0;
         }
 
         if (updatepos) {
-            state.pos += length;
+            state.position += length;
         }
 
         return Promise.resolve({ bytesRead: length, buffer: dest });
@@ -75,10 +79,18 @@ export function path(path: string): Reader {
 }
 
 export function buffer<TBuffer extends Uint8Array>(buffer: TBuffer | ArrayBuffer): Reader {
-    const state = {
-        src: Buffer.from(buffer),
-        pos: 0,
+    const state : BufferState = {
+        array: null,
+        offset: 0,
+        position: 0,
         size: buffer.byteLength
+    };
+
+    if (buffer instanceof Uint8Array) {
+        state.array = buffer.buffer;
+        state.offset = buffer.byteOffset;
+    } else {
+        state.array = buffer;
     }
 
     return {
@@ -135,15 +147,18 @@ export function syncfile(handle: number): Reader {
 }
 
 export function blob(item: Blob): Reader {
-    const state : { src: Buffer, pos: number, size: number } = {
-        src: null,
-        pos: 0,
+    const state : BufferState = {
+        array: null,
+        offset: 0,
+        position: 0,
         size: 0
     }
 
     return {
         open: () => item.arrayBuffer().then(ab=>{
-            state.src = Buffer.from(ab);
+            state.array = ab;
+            state.offset = 0;
+            state.position = 0;
             state.size = ab.byteLength;
         }),
         close: () => Promise.resolve(),

@@ -46,7 +46,7 @@ describe("Open types", () => {
         const fh = await fs.promises.open(path, 'r');
         const buffer = await fh.readFile();
         await fh.close();
-        const elf = await elfinfo.open(buffer.buffer);
+        const elf = await elfinfo.open(buffer.buffer.slice(buffer.byteOffset, buffer.byteLength));
         expect(elf.success).toBe(true);
         expect(elf.errors.length).toBe(0);
         expect(elf.warnings.length).toBe(0);
@@ -55,27 +55,24 @@ describe("Open types", () => {
     it(`should open a Blob without problems`, async () => {
 
         class Blob {
-            constructor (buffer: ArrayBuffer) {
-                this.buffer = buffer;
-                this.size = buffer.byteLength;
+            constructor (buffer: ArrayBuffer, offset: number, length: number) {
+                this.buffer = buffer.slice(offset, length);
+                this.size = length;
             }
             private readonly buffer: ArrayBuffer;
             readonly size: number;
             readonly type: string;
             arrayBuffer(): Promise<ArrayBuffer> {
-                return Promise.resolve(buffer);
+                return Promise.resolve(this.buffer);
             }
             slice(start?: number, end?: number, contentType?: string): Blob {
-                // never called
-                return this;
+                throw "never called";
             }
             stream(): ReadableStream {
-                // never called
-                return null;
+                throw "never called";
             }
             text(): Promise<string> {
-                // never called
-                return null;
+                throw "never called";
             }
         }
 
@@ -83,7 +80,7 @@ describe("Open types", () => {
         const buffer = await fh.readFile();
         await fh.close();
 
-        const elf = await elfinfo.open(new Blob(buffer.buffer));
+        const elf = await elfinfo.open(new Blob(buffer.buffer, buffer.byteOffset, buffer.byteLength));
         expect(elf.success).toBe(true);
         expect(elf.errors.length).toBe(0);
         expect(elf.warnings.length).toBe(0);

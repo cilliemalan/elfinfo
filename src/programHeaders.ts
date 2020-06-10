@@ -1,5 +1,4 @@
 
-import { Buffer } from 'buffer';
 import { ELFProgramHeaderEntry } from './types';
 import { programHeaderEntryTypeToString, programHeaderFlagsToString } from './strings';
 import { Reader } from './reader';
@@ -12,14 +11,16 @@ export async function readProgramHeaderEntries(fh: Reader,
         return [];
     }
 
-    const buff = Buffer.alloc(ph_entsize);
-    const readUInt32 = (bigEndian ? Buffer.prototype.readUInt32BE : Buffer.prototype.readUInt32LE).bind(buff);
-    const readUInt64 = (bigEndian ? Buffer.prototype.readBigUInt64BE : Buffer.prototype.readBigUInt64LE).bind(buff);
+    const buff = new ArrayBuffer(ph_entsize);
+    const view = new DataView(buff);
+    const arr = new Uint8Array(buff);
+    const readUInt32 = (ix:number) => view.getUint32(ix, !bigEndian);
+    const readUInt64 = (ix:number) => view.getBigUint64(ix, !bigEndian);
 
     const result = new Array(ph_num);
 
     for (let i = 0; i < ph_num; i++) {
-        await fh.read(buff, 0, ph_entsize, (ph_off as number) + i * ph_entsize);
+        await fh.read(arr, 0, ph_entsize, (ph_off as number) + i * ph_entsize);
         const type = readUInt32(0);
 
         let ix = 4;

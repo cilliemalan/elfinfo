@@ -7,7 +7,6 @@ import {
     sectionFlagsToString, shndxToString, sectionHeaderEntryTypeToString
 } from "./strings";
 import { Reader } from './reader';
-import { Buffer } from 'buffer';
 
 const MAX_SECTION_LOAD_SIZE = 0x1000000;
 
@@ -33,8 +32,21 @@ function getString(strings: { [index: number]: string; }, index: number) {
     return str;
 }
 
+const decoder = TextDecoder ? new TextDecoder() : null;
+function stringRead(arr: Uint8Array, ix: number, len: number) {
+    if (decoder) {
+        return decoder.decode(arr.subarray(ix, ix + len));
+    } else {
+        // TODO: will fail on large strings
+        String.fromCharCode.apply(null, arr.subarray(ix, ix + len));
+    }
+}
+
 async function readStringSection(fh: Reader, offset: number, size: number): Promise<{ [index: number]: string }> {
-    const tmp = Buffer.alloc(size);
+    const tmp = new Uint8Array(size);
+    const view = new DataView(tmp.buffer, tmp.byteOffset, tmp.byteLength);
+    const decoder = new TextDecoder();
+
     await fh.read(tmp, 0, size, offset);
     let ix = 0;
     const strings: {
@@ -44,7 +56,7 @@ async function readStringSection(fh: Reader, offset: number, size: number): Prom
         if (tmp[i] == 0) {
             const slen = i - ix;
             if (slen > 0) {
-                strings[ix] = tmp.toString('utf8', ix, i);
+                strings[ix] = stringRead(tmp, ix, slen);
             }
             ix = i + 1;
         }
@@ -54,11 +66,12 @@ async function readStringSection(fh: Reader, offset: number, size: number): Prom
 
 async function readSymbolsSection(fh: Reader, offset: number, size: number, entsize: number, bigEndian: boolean, bits: number): Promise<ELFSymbol[]> {
 
-    const tmp = Buffer.alloc(entsize);
-    const readUint8 = Buffer.prototype.readUInt8.bind(tmp);
-    const readUInt16 = (bigEndian ? Buffer.prototype.readUInt16BE : Buffer.prototype.readUInt16LE).bind(tmp);
-    const readUInt32 = (bigEndian ? Buffer.prototype.readUInt32BE : Buffer.prototype.readUInt32LE).bind(tmp);
-    const readUInt64 = (bigEndian ? Buffer.prototype.readBigUInt64BE : Buffer.prototype.readBigUInt64LE).bind(tmp);
+    const tmp = new Uint8Array(entsize);
+    const view = new DataView(tmp.buffer, tmp.byteOffset, tmp.byteLength);
+    const readUint8 = view.getUint8.bind(view);
+    const readUInt16 = (ix: number) => view.getUint16(ix, !bigEndian);
+    const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);
+    const readUInt64 = (ix: number) => view.getBigInt64(ix, !bigEndian);
 
     const num = size / entsize;
     let ix = 0;
@@ -124,9 +137,10 @@ export async function readSectionHeaderEntries(fh: Reader,
         return [];
     }
 
-    const buff = Buffer.alloc(sh_entsize);
-    const readUInt32 = (bigEndian ? Buffer.prototype.readUInt32BE : Buffer.prototype.readUInt32LE).bind(buff);
-    const readUInt64 = (bigEndian ? Buffer.prototype.readBigUInt64BE : Buffer.prototype.readBigUInt64LE).bind(buff);
+    const buff = new Uint8Array(sh_entsize);
+    const view = new DataView(buff.buffer, buff.byteOffset, buff.byteLength);
+    const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);
+    const readUInt64 = (ix: number) => view.getBigInt64(ix, !bigEndian);
 
     const result: ELFSectionHeaderEntry[] = new Array(sh_num);
 
