@@ -1,4 +1,5 @@
-import * as fs from "fs";
+
+import { Buffer } from 'buffer';
 import { ELFProgramHeaderEntry } from './types';
 import { programHeaderEntryTypeToString, programHeaderFlagsToString } from './strings';
 import { Reader } from './reader';

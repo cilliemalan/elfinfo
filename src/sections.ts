@@ -7,6 +7,7 @@ import {
     sectionFlagsToString, shndxToString, sectionHeaderEntryTypeToString
 } from "./strings";
 import { Reader } from './reader';
+import { Buffer } from 'buffer';
 
 const MAX_SECTION_LOAD_SIZE = 0x1000000;
 
