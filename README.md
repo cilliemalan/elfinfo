@@ -20,25 +20,44 @@ read the symbol table and strings.
 will parse directly from memory, and a file handle will read from the file.
 
 ### Examining the data
-Several (currently undocumented) functions are provided on the elf data structure for examining information
+Several functions are provided on the elf data structure for examining information
 about symbols and translating addresses. For example, `getSymbolsInSection` will get all the symbols
 exist in a specified setcion, `getSymbolFileOffset` will tell you the actual file offset of a symbol
 (if possible) so you can actually read the symbol data. There are also functions for doing VMA and LMA
-stuff.
+stuff. Documentation is currently pending but autocomplete should work in an IDE like VS Code.
+
+### BigInt and Number
+Javascript numbers are doubles. This is non-ideal for 64-bit file offsets so for 64-bit ELF files
+BigInt is used whenever the data is stored as a 64 bit number in the ELF file or where something
+refers to a memory location. This can be a pain since you can't mix arithmetic for BigInt and Number.
+There isn't currently a nice solution (I mean, what can you do?), so just be aware of it.
 
 ### Terminology
 ELF and ELF tools (such as readelf) sometimes use conflicting terminology. Here is an indication of what
 things mean according to this library:
 - a **Segment** refers to a piece of data that exists in the ELF file and is to be loaded into memory at
-  a certain location. In the ELF file they are stored as *Program Header Entries*.
+  a certain location. In the ELF file they are stored as *Program Header Entries*. A segment consists mainly of
+  a file offset and two memory locations, the virtual and physical memory locations.
 - a **Section** refers to the various sections stored in the ELF file. A section has an address which
-  is always a virtual (VMA) address.
+  is always a virtual (VMA) address. Each section mainly consists of a name, a type, a virtual memory location, and a size.
+  There are many kinds of sections, but the main ones are those that contain program data (either code or data), symbols,
+  and strings. elfinfo currently parses string and symbol sections.
+- a **Symbol** can refer to many different things, but usually refers to a *function* or *variable* used in code.
+  There are also symbols for sections and files, but these are more for debugging and operating system purposes
+  so locations in memory can be related to other things, and don't relate to the execution of the code itself. Symbols
+  are stored in symbol table sections, and the names of symbols are stored in string table sections. Stored with the symbol is the
+  name of the symbol, the type of the symbol, the virtual memory location of the symbol, sometimes the size of the symbol,
+  and some other things.
 - a **Virtual Address** refers to the address a segment, section, or symbol has in memory. This is sometimes referred
   to as a *VMA address* or a *memory address*.
 - a **Physical Address** refers to the address a segment, section, or symbol has on disk. This does not refer to the
-  offset in the file. In most cases for ELF files loaded directly into memory (i.e. in an operating system like linux)
-  this will be the same as the virtual address. However, in embedded systems the data for virtual memory locations
-  needs to be stored on disc somewhere
+  offset in the file. A normal ELF executable for an operating system like linux will usually have virtual addresses
+  match the physical addresses since the file can be mapped into memory wherever needed. However, in embedded systems
+  the data for virtual memory locations needs to be stored on disk somewhere. This is the physical address. This is
+  also called the *LMA address* or *load address*.  Some symbols and sections don't have a physical address (for example,
+  BSS section symbols that are cleared in memory on startup).
+- a **File Offset** refers to a location in the ELF file itself. Only segments have file offsets, but the file offset
+  can be calculated for a section or symbol, if it exists.
 
 ### What gets parsed
 A debug function is also provided, that spits out readelf/objdump like stuff.
@@ -204,6 +223,17 @@ In order to run tests you will need to have the following programs installed and
 *Note:* just because the programs compile doesn't mean they will work or represent how one should 
 write programs for any of the given platforms. The idea is to generate executables for tests
 and the tests don't run the programs, they just expect the ELF files to contain certain things.
+
+# Roadmap
+
+**Done:**
+[x] Read elf file, including segments and sections.
+[x] Read symbol and string tables and relate to sections.
+[x] Provide functions for dealing with addresses.
+
+**TODO:**
+[ ] Disassembly of functions.
+[ ] Stack analysis.
 
 # License
 See [LICENSE](LICENSE) which applies to all files in this repository unless otherwise specified.
