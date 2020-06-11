@@ -290,6 +290,16 @@ describe("Functions", () => {
         expect(result).toBe(testaddr_phys);
     });
 
+    it(`virtualAddressToFileOffset works`, async () => {
+        const elf = await load(armpath);
+        const symbol = elf.getSymbolByName('globaldatastring')
+        const result = elf.virtualAddressToFileOffset(symbol.value);
+        expect(result).not.toBeNull();
+        expect(result).toBeGreaterThan(Number(elf.programHeaderEntries[0].offset));
+        const symbolvalue = fs.readFileSync(armpath).slice(Number(result), Number(result) + Number(symbol.size)).toString();
+        expect(symbolvalue).toBe('Hello World #X\0');
+    });
+
     it(`physicalAddressToVirtual works`, async () => {
         const elf = await load(armpath);
         // the second segment in ARM has different physical and virtual addresses
@@ -298,6 +308,35 @@ describe("Functions", () => {
         const testaddr_virt = Number(vaddr) + 10;
         const result = elf.physicalAddressToVirtual(testaddr_phys);
         expect(result).toBe(testaddr_virt);
+    });
+
+    it(`physicalAddressToFileOffset works`, async () => {
+        const elf = await load(armpath);
+        const symbol = elf.getSymbolByName('globalrodatastring');
+        const physicalAddress = elf.virtualAddressToPhysical(symbol.value);
+        const result = elf.physicalAddressToFileOffset(physicalAddress);
+        expect(result).not.toBeNull();
+        expect(result).toBeGreaterThan(Number(elf.programHeaderEntries[0].offset));
+        const symbolvalue = fs.readFileSync(armpath).slice(Number(result), Number(result) + Number(symbol.size)).toString();
+        expect(symbolvalue).toBe('Hello World\0');
+    });
+
+    it(`fileOffsetToPhysicalAddress works`, async () => {
+        const elf = await load(armpath);
+        const symbol = elf.getSymbolByName('globalrodatastring');
+        const fileOffset = elf.virtualAddressToFileOffset(symbol.value);
+        const physicalAddress = elf.virtualAddressToPhysical(symbol.value);
+        const physicalAddress2 = elf.fileOffsetToPhysicalAddress(fileOffset);
+        expect(physicalAddress2).toBe(physicalAddress);
+    });
+
+    it(`fileOffsetToVirtualAddress works`, async () => {
+        const elf = await load(armpath);
+        const symbol = elf.getSymbolByName('globalrodatastring');
+        const fileOffset = elf.virtualAddressToFileOffset(symbol.value);
+        const virtualAddress = symbol.value;
+        const virtualAddress2 = elf.fileOffsetToVirtualAddress(fileOffset);
+        expect(virtualAddress2).toBe(virtualAddress2);
     });
 
     it(`not all virtual addresses have a corresponding physical address`, async () => {
