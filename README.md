@@ -19,6 +19,27 @@ read the symbol table and strings.
 `open` can be called with a variety of arguments. A string will open a file, a buffer, array, or blob
 will parse directly from memory, and a file handle will read from the file.
 
+### Examining the data
+Several (currently undocumented) functions are provided on the elf data structure for examining information
+about symbols and translating addresses. For example, `getSymbolsInSection` will get all the symbols
+exist in a specified setcion, `getSymbolFileOffset` will tell you the actual file offset of a symbol
+(if possible) so you can actually read the symbol data. There are also functions for doing VMA and LMA
+stuff.
+
+### Terminology
+ELF and ELF tools (such as readelf) sometimes use conflicting terminology. Here is an indication of what
+things mean according to this library:
+- a **Segment** refers to a piece of data that exists in the ELF file and is to be loaded into memory at
+  a certain location. In the ELF file they are stored as *Program Header Entries*.
+- a **Section** refers to the various sections stored in the ELF file. A section has an address which
+  is always a virtual (VMA) address.
+- a **Virtual Address** refers to the address a segment, section, or symbol has in memory. This is sometimes referred
+  to as a *VMA address* or a *memory address*.
+- a **Physical Address** refers to the address a segment, section, or symbol has on disk. This does not refer to the
+  offset in the file. In most cases for ELF files loaded directly into memory (i.e. in an operating system like linux)
+  this will be the same as the virtual address. However, in embedded systems the data for virtual memory locations
+  needs to be stored on disc somewhere
+
 ### What gets parsed
 A debug function is also provided, that spits out readelf/objdump like stuff.
 
