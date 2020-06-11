@@ -155,7 +155,11 @@ export interface ELFFunctions {
     getSegmentsAtVirtualMemoryLocation(location: number | BigInt): ELFProgramHeaderEntry[];
     getSegmentsAtPhysicalMemoryLocation(location: number | BigInt): ELFProgramHeaderEntry[];
     virtualAddressToPhysical(location: number | BigInt): number | BigInt;
+    virtualAddressToFileOffset(location: number | BigInt): number | BigInt;
     physicalAddressToVirtual(location: number | BigInt): number | BigInt;
+    physicalAddressToFileOffset(location: number | BigInt): number | BigInt;
+    fileOffsetToPhysicalAddress(location: number | BigInt): number | BigInt;
+    fileOffsetToVirtualAddress(location: number | BigInt): number | BigInt;
     getSectionByName(sectionName: string): ELFSectionHeaderEntry;
     getSectionsByName(sectionName: string): ELFSectionHeaderEntry[];
     getSymbolByName(symbolName: string): ELFSymbol;

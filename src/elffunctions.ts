@@ -145,10 +145,56 @@ function virtualAddressToPhysical(this: ELFFile, location: number | BigInt): num
     return null;
 }
 
+function virtualAddressToFileOffset(this: ELFFile, location: number | BigInt): number | BigInt {
+    for (const segment of this.programHeaderEntries) {
+        if (location >= segment.vaddr && location < add(segment.vaddr, segment.memsz)) {
+            const offset = subtract(location, segment.paddr);
+            if (offset < segment.filesz) {
+                return add(segment.offset, offset);
+            }
+        }
+    }
+    
+    return null;
+}
+
 function physicalAddressToVirtual(this: ELFFile, location: number | BigInt): number | BigInt {
     for (const segment of this.programHeaderEntries) {
         if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
             const offset = subtract(location, segment.paddr);
+            return add(segment.vaddr, offset);
+        }
+    }
+
+    return null;
+}
+
+function physicalAddressToFileOffset(this: ELFFile, location: number | BigInt): number | BigInt {
+    for (const segment of this.programHeaderEntries) {
+        if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
+            const offset = subtract(location, segment.paddr);
+            return add(segment.offset, offset);
+        }
+    }
+
+    return null;
+}
+
+function fileOffsetToPhysicalAddress(this: ELFFile, location: number | BigInt): number | BigInt {
+    for (const segment of this.programHeaderEntries) {
+        if (location >= segment.offset && location < add(segment.offset, segment.filesz)) {
+            const offset = subtract(location, segment.offset);
+            return add(segment.paddr, offset);
+        }
+    }
+
+    return null;
+}
+
+function fileOffsetToVirtualAddress(this: ELFFile, location: number | BigInt): number | BigInt {
+    for (const segment of this.programHeaderEntries) {
+        if (location >= segment.offset && location < add(segment.offset, segment.filesz)) {
+            const offset = subtract(location, segment.offset);
             return add(segment.vaddr, offset);
         }
     }
@@ -209,7 +255,11 @@ export function getFunctions(): ELFFunctions {
         getSegmentsAtVirtualMemoryLocation,
         getSegmentsAtPhysicalMemoryLocation,
         virtualAddressToPhysical,
+        virtualAddressToFileOffset,
         physicalAddressToVirtual,
+        physicalAddressToFileOffset,
+        fileOffsetToPhysicalAddress,
+        fileOffsetToVirtualAddress,
         getSectionByName,
         getSectionsByName,
         getSymbolByName,
