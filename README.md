@@ -227,13 +227,22 @@ and the tests don't run the programs, they just expect the ELF files to contain 
 # Roadmap
 
 **Done:**
-[x] Read elf file, including segments and sections.
-[x] Read symbol and string tables and relate to sections.
-[x] Provide functions for dealing with addresses.
+- [x] Read elf file, including segments and sections.
+- [x] Read symbol and string tables and relate them to sections.
+- [x] Provide functions for dealing with addresses (VMA, LMA, and file).
 
 **TODO:**
-[ ] Disassembly of functions.
-[ ] Stack analysis.
+- [ ] Disassembly of functions.
+- [ ] Rudimentary binary analysis, especially stack analysis.
+- [ ] Demanging of C++ names (or other names for that matter).
+- [ ] Documentation.
+- [ ] Performance. Though the ELF parsing happens in an instant, the functions
+      for inspecting the structure are slow and will suffer on big files.
+- [ ] Test on more platforms. Currently we do cursory checks for x64, Risc-V and ARM Cortex-M.
+      Other platforms of interest could be MIPS and more ARM. executables for these systems should
+      load but no tests have been done.
+- [ ] A companion library for visualization. I would like to see where everything is and easily be
+      able to spot functions that are too big or in the wrong place.
 
 # License
 See [LICENSE](LICENSE) which applies to all files in this repository unless otherwise specified.
