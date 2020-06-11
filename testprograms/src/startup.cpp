@@ -9,6 +9,9 @@ extern "C"
     extern uint32_t _sdata;
     extern uint32_t _sidata;
     extern uint32_t _edata;
+    extern uint32_t _sdata2;
+    extern uint32_t _sidata2;
+    extern uint32_t _edata2;
     extern uint32_t _estack;
     int __libc_init_array();
     int main();
@@ -32,6 +35,12 @@ extern "C"
 
         // copy in data
         for (uint32_t *d = &_sdata, *s = &_sidata; d < &_edata; s++, d++)
+        {
+            *d = *s;
+        }
+
+        // copy in data2
+        for (uint32_t *d = &_sdata2, *s = &_sidata2; d < &_edata2; s++, d++)
         {
             *d = *s;
         }

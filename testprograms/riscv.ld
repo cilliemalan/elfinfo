@@ -101,6 +101,18 @@ SECTIONS
     
     . = ALIGN(4);
   } >RAM
+  
+  _sidata2 = LOADADDR(.data);
+  .data2 :
+  {
+    . = ALIGN(4);
+    _sdata2 = .;
+    *(.data2)
+    *(.data2*)
+    *(.datatext2)
+    . = ALIGN(4);
+    _edata2 = .;
+  } >RAM AT >FLASH
 
   /* discard some things */
   /DISCARD/ :
