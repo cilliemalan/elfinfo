@@ -3,3 +3,4 @@ coverage/
 dist/
 testprograms/bin/
 testprograms/obj/
+*.tsbak
