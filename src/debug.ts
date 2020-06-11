@@ -30,11 +30,11 @@ export function debug(file: ELFFile): string {
         result += `Program header offset:             ${toHex(file.programHeaderOffset)}\n`;
         result += `Section header offset:             ${toHex(file.sectionHeaderOffset)}\n`;
         result += `Flags:                             ${file.flagsDescription} (${toHex(file.flags)})\n`;
-        result += `Program headers:                   ${file.programHeaderEntrySize} bytes × ${file.programHeaderEntries.length}\n`;
-        result += `Section headers:                   ${file.sectionHeaderEntrySize} bytes × ${file.sectionHeaderEntries.length}\n`;
+        result += `Program headers:                   ${file.programHeaderEntrySize} bytes × ${file.segments.length}\n`;
+        result += `Section headers:                   ${file.sectionHeaderEntrySize} bytes × ${file.sections.length}\n`;
         result += `String table section index:        ${file.shstrIndex}\n`;
 
-        if (file.programHeaderEntries.length) {
+        if (file.segments.length) {
 
             result += '\n\nProgram Header Entries:\n\n';
             if (file.bits == 32) {
@@ -42,7 +42,7 @@ export function debug(file: ELFFile): string {
             } else {
                 result += '    #   Type                 Offset             VirtAddr           PhysAddr           FileSize           MemSiz             Align      Flags\n';
             }
-            for (const header of file.programHeaderEntries) {
+            for (const header of file.segments) {
                 result += `    ${header.index.toString().padEnd(3)} `
                 result += `${header.typeDescription.padEnd(20)} `;
                 result += `${toHex(header.offset, addrpad)} `;
@@ -55,7 +55,7 @@ export function debug(file: ELFFile): string {
             }
         }
 
-        if (file.sectionHeaderEntries.length) {
+        if (file.sections.length) {
 
             result += '\n\n\Sections:\n\n';
             if (file.bits == 32) {
@@ -64,7 +64,7 @@ export function debug(file: ELFFile): string {
                 result += '    #   Name               Type                             Address            Offset             Size               EntSize            Link  Info  Align      Flags\n';
             }
 
-            for (const section of file.sectionHeaderEntries) {
+            for (const section of file.sections) {
                 result += `    ${section.index.toString().padEnd(3)} `
                 result += `${section.name.substr(0, 18).padEnd(18)} `;
                 result += `${section.typeDescription.padEnd(32)} `;
@@ -79,7 +79,7 @@ export function debug(file: ELFFile): string {
             }
         }
 
-        for (const section of file.sectionHeaderEntries) {
+        for (const section of file.sections) {
             if (section.symbols && section.symbols.length > 0) {
                 result += `\n\n\Symbols for section #${section.index} ${section.name}:\n\n`;
                 if (file.bits == 32) {

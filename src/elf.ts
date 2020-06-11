@@ -107,8 +107,8 @@ export async function readElf(reader: Reader): Promise<ELFOpenResult> {
                     const type = eType as ObjectType;
                     const isa = eMachine as ISA;
 
-                    const programHeaderEntries = await readProgramHeaderEntries(reader, ePHOff, ePHEntSize, ePHNum, bits, bigEndian);
-                    const sectionHeaderEntries = await readSectionHeaderEntries(reader, eSHOff, eSHEntSize, eSHNum, bits, bigEndian, eSHStrNdx);
+                    const segments = await readProgramHeaderEntries(reader, ePHOff, ePHEntSize, ePHNum, bits, bigEndian);
+                    const sections = await readSectionHeaderEntries(reader, eSHOff, eSHEntSize, eSHNum, bits, bigEndian, eSHStrNdx);
 
                     result.elf = {
                         path: null,
@@ -136,8 +136,8 @@ export async function readElf(reader: Reader): Promise<ELFOpenResult> {
                         sectionHeaderEntrySize: eSHEntSize,
                         numSectionHeaderEntries: eSHNum,
                         shstrIndex: eSHStrNdx,
-                        programHeaderEntries,
-                        sectionHeaderEntries,
+                        segments,
+                        sections,
                         ...getFunctions()
                     };
 

@@ -195,8 +195,8 @@ export interface ELFFile extends ELFFunctions {
     sectionHeaderEntrySize: number;
     numSectionHeaderEntries: number;
     shstrIndex: number;
-    programHeaderEntries: ELFProgramHeaderEntry[];
-    sectionHeaderEntries: ELFSectionHeaderEntry[];
+    segments: ELFProgramHeaderEntry[];
+    sections: ELFSectionHeaderEntry[];
 }
 
 export interface ELFProgramHeaderEntry {

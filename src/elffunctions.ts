@@ -7,7 +7,7 @@ function filterSymbolsByVirtualAddress(elf: ELFFile, start: number | BigInt, siz
     const end = add(start, size);
 
     const symbols = [];
-    for (const section of elf.sectionHeaderEntries) {
+    for (const section of elf.sections) {
         if (section.symbols) {
             for (const symbol of section.symbols) {
                 if (symbol.value >= start && symbol.value < end) {
@@ -21,30 +21,30 @@ function filterSymbolsByVirtualAddress(elf: ELFFile, start: number | BigInt, siz
 }
 
 function getSymbols(this: ELFFile, ): ELFSymbol[] {
-    return this.sectionHeaderEntries
+    return this.sections
         .filter(she => she.symbols && she.symbols.length)
         .flatMap(x => x.symbols);
 }
 
 function getSymbolsInSection(this: ELFFile, sectionOrIndex: ELFSectionHeaderEntry | number): ELFSymbol[] {
-    const section = typeof sectionOrIndex == 'number' ? this.sectionHeaderEntries[sectionOrIndex] : sectionOrIndex;
+    const section = typeof sectionOrIndex == 'number' ? this.sections[sectionOrIndex] : sectionOrIndex;
     return filterSymbolsByVirtualAddress(this, section.addr, section.size);
 }
 
 function getSymbolsInSegment(this: ELFFile, segmentOrIndex: ELFProgramHeaderEntry | number): ELFSymbol[] {
-    const segment = typeof segmentOrIndex == 'number' ? this.programHeaderEntries[segmentOrIndex] : segmentOrIndex;
+    const segment = typeof segmentOrIndex == 'number' ? this.segments[segmentOrIndex] : segmentOrIndex;
     return filterSymbolsByVirtualAddress(this, segment.vaddr, segment.memsz);
 }
 
 function getSectionsInSegment(this: ELFFile, segmentOrIndex: ELFProgramHeaderEntry | number): ELFSectionHeaderEntry[] {
-    const segment = typeof segmentOrIndex == 'number' ? this.programHeaderEntries[segmentOrIndex] : segmentOrIndex;
+    const segment = typeof segmentOrIndex == 'number' ? this.segments[segmentOrIndex] : segmentOrIndex;
 
-    return this.sectionHeaderEntries.filter(x => x.addr > segment.vaddr && x.addr < add(segment.vaddr, segment.memsz));
+    return this.sections.filter(x => x.addr > segment.vaddr && x.addr < add(segment.vaddr, segment.memsz));
 }
 
 function getSectionsForSymbol(this: ELFFile, symbol: ELFSymbol): ELFSectionHeaderEntry[] {
     const sections = [];
-    for (const section of this.sectionHeaderEntries) {
+    for (const section of this.sections) {
         if (symbol.value >= section.addr && symbol.value <= add(section.addr, section.size)) {
             sections.push(section);
         }
@@ -59,7 +59,7 @@ function getSectionForSymbol(this: ELFFile, symbol: ELFSymbol): ELFSectionHeader
 
 function getSegmentsForSymbol(this: ELFFile, symbol: ELFSymbol): ELFProgramHeaderEntry[] {
     const segments = [];
-    for (const segment of this.programHeaderEntries) {
+    for (const segment of this.segments) {
         if (symbol.value >= segment.vaddr && symbol.value <= add(segment.vaddr, segment.memsz)) {
             segments.push(segment);
         }
@@ -74,7 +74,7 @@ function getSegmentForSymbol(this: ELFFile, symbol: ELFSymbol): ELFProgramHeader
 
 function getSymbolsAtVirtualMemoryLocation(this: ELFFile, location: number | BigInt): ELFSymbol[] {
     const symbols: ELFSymbol[] = [];
-    for (const section of this.sectionHeaderEntries) {
+    for (const section of this.sections) {
         if (section.symbols) {
             for (const symbol of section.symbols) {
                 if (symbol.size == 0) {
@@ -99,7 +99,7 @@ function getSymbolsAtPhysicalMemoryLocation(this: ELFFile, location: number | Bi
 
 function getSectionsAtVirtualMemoryLocation(this: ELFFile, location: number | BigInt): ELFSectionHeaderEntry[] {
     const sections = [];
-    for (const section of this.sectionHeaderEntries) {
+    for (const section of this.sections) {
         if (location >= section.addr && location < add(section.addr, section.size)) {
             sections.push(section);
         }
@@ -114,7 +114,7 @@ function getSectionsAtPhysicalMemoryLocation(this: ELFFile, location: number | B
 
 function getSegmentsAtVirtualMemoryLocation(this: ELFFile, location: number | BigInt): ELFProgramHeaderEntry[] {
     const segments = [];
-    for (const segment of this.programHeaderEntries) {
+    for (const segment of this.segments) {
         if (location >= segment.vaddr && location < add(segment.vaddr, segment.memsz)) {
             segments.push(segment);
         }
@@ -124,7 +124,7 @@ function getSegmentsAtVirtualMemoryLocation(this: ELFFile, location: number | Bi
 
 function getSegmentsAtPhysicalMemoryLocation(this: ELFFile, location: number | BigInt): ELFProgramHeaderEntry[] {
     const segments = [];
-    for (const segment of this.programHeaderEntries) {
+    for (const segment of this.segments) {
         if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
             segments.push(segment);
         }
@@ -133,7 +133,7 @@ function getSegmentsAtPhysicalMemoryLocation(this: ELFFile, location: number | B
 }
 
 function virtualAddressToPhysical(this: ELFFile, location: number | BigInt): number | BigInt {
-    for (const segment of this.programHeaderEntries) {
+    for (const segment of this.segments) {
         if (location >= segment.vaddr && location <= add(segment.vaddr, segment.memsz)) {
             const offset = subtract(location, segment.vaddr);
             if (offset < segment.filesz) {
@@ -146,7 +146,7 @@ function virtualAddressToPhysical(this: ELFFile, location: number | BigInt): num
 }
 
 function virtualAddressToFileOffset(this: ELFFile, location: number | BigInt): number | BigInt {
-    for (const segment of this.programHeaderEntries) {
+    for (const segment of this.segments) {
         if (location >= segment.vaddr && location < add(segment.vaddr, segment.memsz)) {
             const offset = subtract(location, segment.vaddr);
             if (offset < segment.filesz) {
@@ -159,7 +159,7 @@ function virtualAddressToFileOffset(this: ELFFile, location: number | BigInt): n
 }
 
 function physicalAddressToVirtual(this: ELFFile, location: number | BigInt): number | BigInt {
-    for (const segment of this.programHeaderEntries) {
+    for (const segment of this.segments) {
         if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
             const offset = subtract(location, segment.paddr);
             return add(segment.vaddr, offset);
@@ -170,7 +170,7 @@ function physicalAddressToVirtual(this: ELFFile, location: number | BigInt): num
 }
 
 function physicalAddressToFileOffset(this: ELFFile, location: number | BigInt): number | BigInt {
-    for (const segment of this.programHeaderEntries) {
+    for (const segment of this.segments) {
         if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
             const offset = subtract(location, segment.paddr);
             return add(segment.offset, offset);
@@ -181,7 +181,7 @@ function physicalAddressToFileOffset(this: ELFFile, location: number | BigInt): 
 }
 
 function fileOffsetToPhysicalAddress(this: ELFFile, location: number | BigInt): number | BigInt {
-    for (const segment of this.programHeaderEntries) {
+    for (const segment of this.segments) {
         if (location >= segment.offset && location < add(segment.offset, segment.filesz)) {
             const offset = subtract(location, segment.offset);
             return add(segment.paddr, offset);
@@ -192,7 +192,7 @@ function fileOffsetToPhysicalAddress(this: ELFFile, location: number | BigInt): 
 }
 
 function fileOffsetToVirtualAddress(this: ELFFile, location: number | BigInt): number | BigInt {
-    for (const segment of this.programHeaderEntries) {
+    for (const segment of this.segments) {
         if (location >= segment.offset && location < add(segment.offset, segment.filesz)) {
             const offset = subtract(location, segment.offset);
             return add(segment.vaddr, offset);
@@ -207,11 +207,11 @@ function getSectionByName(this: ELFFile, sectionName: string): ELFSectionHeaderE
 }
 
 function getSectionsByName(this: ELFFile, sectionName: string): ELFSectionHeaderEntry[] {
-    return this.sectionHeaderEntries.filter(s => s.name.toUpperCase() == sectionName.toUpperCase());
+    return this.sections.filter(s => s.name.toUpperCase() == sectionName.toUpperCase());
 }
 
 function getSymbolByName(this: ELFFile, symbolName: string): ELFSymbol {
-    for (const section of this.sectionHeaderEntries) {
+    for (const section of this.sections) {
         if (section.symbols) {
             for (const symbol of section.symbols) {
                 if (symbol.name && symbol.name.toUpperCase() == symbolName.toUpperCase()) {
@@ -226,7 +226,7 @@ function getSymbolByName(this: ELFFile, symbolName: string): ELFSymbol {
 
 function getSymbolsByName(this: ELFFile, symbolName: string): ELFSymbol[] {
     const matches = [];
-    for (const section of this.sectionHeaderEntries) {
+    for (const section of this.sections) {
         if (section.symbols) {
             for (const symbol of section.symbols) {
                 if (symbol.name && symbol.name.toUpperCase() == symbolName.toUpperCase()) {

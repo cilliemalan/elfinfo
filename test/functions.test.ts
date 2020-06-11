@@ -48,7 +48,7 @@ describe("Functions", () => {
 
     it(`getSymbolsInSegment (segment) works`, async () => {
         const elf = await load(path);
-        const syms = elf.getSymbolsInSegment(elf.programHeaderEntries[2]);
+        const syms = elf.getSymbolsInSegment(elf.segments[2]);
         expect(syms).not.toBeNull();
         expect(syms.length).toBeGreaterThan(0);
         expect(syms.filter(x=>x.name == 'main').length).not.toBe(0);
@@ -234,7 +234,7 @@ describe("Functions", () => {
     
     it(`getSegmentsAtVirtualMemoryLocation works when queried at start of section`, async () => {
         const elf = await load(armpath);
-        const segment = elf.programHeaderEntries[0];
+        const segment = elf.segments[0];
         const segments = elf.getSegmentsAtVirtualMemoryLocation(Number(segment.vaddr));
         expect(segments).not.toBeNull();
         expect(segments.includes(segment)).toBeTruthy();
@@ -242,7 +242,7 @@ describe("Functions", () => {
 
     it(`getSegmentsAtVirtualMemoryLocation works when queried in middle of section`, async () => {
         const elf = await load(armpath);
-        const segment = elf.programHeaderEntries[0];
+        const segment = elf.segments[0];
         const segments = elf.getSegmentsAtVirtualMemoryLocation(Number(segment.vaddr) + 10);
         expect(segments).not.toBeNull();
         expect(segments.includes(segment)).toBeTruthy();
@@ -250,7 +250,7 @@ describe("Functions", () => {
 
     it(`getSegmentsAtVirtualMemoryLocation works when queried at end of section`, async () => {
         const elf = await load(armpath);
-        const segment = elf.programHeaderEntries[0];
+        const segment = elf.segments[0];
         const segments = elf.getSegmentsAtVirtualMemoryLocation(Number(segment.vaddr) + Number(segment.memsz) - 1);
         expect(segments).not.toBeNull();
         expect(segments.includes(segment)).toBeTruthy();
@@ -258,7 +258,7 @@ describe("Functions", () => {
     
     it(`getSegmentsAtPhysicalMemoryLocation works when queried at start of section`, async () => {
         const elf = await load(armpath);
-        const segment = elf.programHeaderEntries[0];
+        const segment = elf.segments[0];
         const segments = elf.getSegmentsAtPhysicalMemoryLocation(Number(segment.paddr));
         expect(segments).not.toBeNull();
         expect(segments.includes(segment)).toBeTruthy();
@@ -266,7 +266,7 @@ describe("Functions", () => {
 
     it(`getSegmentsAtPhysicalMemoryLocation works when queried in middle of section`, async () => {
         const elf = await load(armpath);
-        const segment = elf.programHeaderEntries[0];
+        const segment = elf.segments[0];
         const segments = elf.getSegmentsAtPhysicalMemoryLocation(Number(segment.paddr) + 10);
         expect(segments).not.toBeNull();
         expect(segments.includes(segment)).toBeTruthy();
@@ -274,7 +274,7 @@ describe("Functions", () => {
 
     it(`getSegmentsAtPhysicalMemoryLocation works when queried at end of section`, async () => {
         const elf = await load(armpath);
-        const segment = elf.programHeaderEntries[0];
+        const segment = elf.segments[0];
         const segments = elf.getSegmentsAtPhysicalMemoryLocation(Number(segment.paddr) + Number(segment.memsz) - 1);
         expect(segments).not.toBeNull();
         expect(segments.includes(segment)).toBeTruthy();
@@ -283,7 +283,7 @@ describe("Functions", () => {
     it(`virtualAddressToPhysical works`, async () => {
         const elf = await load(armpath);
         // the second segment in ARM has different physical and virtual addresses
-        const {vaddr, paddr} = elf.programHeaderEntries[1];
+        const {vaddr, paddr} = elf.segments[1];
         const testaddr_phys = Number(paddr) + 10;
         const testaddr_virt = Number(vaddr) + 10;
         const result = elf.virtualAddressToPhysical(testaddr_virt);
@@ -295,7 +295,7 @@ describe("Functions", () => {
         const symbol = elf.getSymbolByName('globaldatastring')
         const result = elf.virtualAddressToFileOffset(symbol.value);
         expect(result).not.toBeNull();
-        expect(result).toBeGreaterThan(Number(elf.programHeaderEntries[0].offset));
+        expect(result).toBeGreaterThan(Number(elf.segments[0].offset));
         const symbolvalue = fs.readFileSync(armpath).slice(Number(result), Number(result) + Number(symbol.size)).toString();
         expect(symbolvalue).toBe('Hello World #X\0');
     });
@@ -303,7 +303,7 @@ describe("Functions", () => {
     it(`physicalAddressToVirtual works`, async () => {
         const elf = await load(armpath);
         // the second segment in ARM has different physical and virtual addresses
-        const {vaddr, paddr} = elf.programHeaderEntries[1];
+        const {vaddr, paddr} = elf.segments[1];
         const testaddr_phys = Number(paddr) + 10;
         const testaddr_virt = Number(vaddr) + 10;
         const result = elf.physicalAddressToVirtual(testaddr_phys);
@@ -316,7 +316,7 @@ describe("Functions", () => {
         const physicalAddress = elf.virtualAddressToPhysical(symbol.value);
         const result = elf.physicalAddressToFileOffset(physicalAddress);
         expect(result).not.toBeNull();
-        expect(result).toBeGreaterThan(Number(elf.programHeaderEntries[0].offset));
+        expect(result).toBeGreaterThan(Number(elf.segments[0].offset));
         const symbolvalue = fs.readFileSync(armpath).slice(Number(result), Number(result) + Number(symbol.size)).toString();
         expect(symbolvalue).toBe('Hello World\0');
     });
