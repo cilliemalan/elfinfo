@@ -2,8 +2,8 @@ import { ELFFunctions, ELFSymbol, ELFSectionHeaderEntry, ELFProgramHeaderEntry, 
 import { add, subtract } from './biginthelpers';
 
 
-function filterSymbolsByVirtualAddress(elf: ELFFile, start: number|BigInt, size: number|BigInt) : ELFSymbol[] {
-    
+function filterSymbolsByVirtualAddress(elf: ELFFile, start: number | BigInt, size: number | BigInt): ELFSymbol[] {
+
     const end = add(start, size);
 
     const symbols = [];
@@ -154,7 +154,7 @@ function virtualAddressToFileOffset(this: ELFFile, location: number | BigInt): n
             }
         }
     }
-    
+
     return null;
 }
 
@@ -238,6 +238,18 @@ function getSymbolsByName(this: ELFFile, symbolName: string): ELFSymbol[] {
     return matches;
 }
 
+function getSymbolVirtualAddress(this: ELFFile, symbol: ELFSymbol): number | BigInt {
+    return symbol.value;
+}
+
+function getSymbolPhysicalAddress(this: ELFFile, symbol: ELFSymbol): number | BigInt {
+    return this.virtualAddressToPhysical(symbol.value);
+}
+
+function getSymbolFileOffset(this: ELFFile, symbol: ELFSymbol): number | BigInt {
+    return this.virtualAddressToFileOffset(symbol.value);
+}
+
 export function getFunctions(): ELFFunctions {
     return {
         getSymbols,
@@ -263,6 +275,9 @@ export function getFunctions(): ELFFunctions {
         getSectionByName,
         getSectionsByName,
         getSymbolByName,
-        getSymbolsByName
+        getSymbolsByName,
+        getSymbolVirtualAddress,
+        getSymbolPhysicalAddress,
+        getSymbolFileOffset
     }
 }

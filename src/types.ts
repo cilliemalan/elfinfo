@@ -164,6 +164,9 @@ export interface ELFFunctions {
     getSectionsByName(sectionName: string): ELFSectionHeaderEntry[];
     getSymbolByName(symbolName: string): ELFSymbol;
     getSymbolsByName(symbolName: string): ELFSymbol[];
+    getSymbolVirtualAddress(symbol: ELFSymbol): number | BigInt;
+    getSymbolPhysicalAddress(symbol: ELFSymbol): number | BigInt;
+    getSymbolFileOffset(symbol: ELFSymbol): number | BigInt;
 }
 
 export interface ELFFile extends ELFFunctions {
