@@ -148,7 +148,7 @@ function virtualAddressToPhysical(this: ELFFile, location: number | BigInt): num
 function virtualAddressToFileOffset(this: ELFFile, location: number | BigInt): number | BigInt {
     for (const segment of this.programHeaderEntries) {
         if (location >= segment.vaddr && location < add(segment.vaddr, segment.memsz)) {
-            const offset = subtract(location, segment.paddr);
+            const offset = subtract(location, segment.vaddr);
             if (offset < segment.filesz) {
                 return add(segment.offset, offset);
             }
