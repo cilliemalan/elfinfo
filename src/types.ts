@@ -145,7 +145,9 @@ export interface ELFFunctions {
     getSymbolsInSegment(segmentOrIndex: ELFProgramHeaderEntry | number): ELFSymbol[];
     getSectionsInSegment(segmentOrIndex: ELFProgramHeaderEntry | number): ELFSectionHeaderEntry[];
     getSectionForSymbol(symbol: ELFSymbol): ELFSectionHeaderEntry;
+    getSectionsForSymbol(symbol: ELFSymbol): ELFSectionHeaderEntry[];
     getSegmentForSymbol(symbol: ELFSymbol): ELFProgramHeaderEntry;
+    getSegmentsForSymbol(symbol: ELFSymbol): ELFProgramHeaderEntry[];
     getSymbolsAtVirtualMemoryLocation(location: number | BigInt): ELFSymbol[];
     getSymbolsAtPhysicalMemoryLocation(location: number | BigInt): ELFSymbol[];
     getSectionsAtVirtualMemoryLocation(location: number | BigInt): ELFSectionHeaderEntry[];
@@ -154,6 +156,10 @@ export interface ELFFunctions {
     getSegmentsAtPhysicalMemoryLocation(location: number | BigInt): ELFProgramHeaderEntry[];
     virtualAddressToPhysical(location: number | BigInt): number | BigInt;
     physicalAddressToVirtual(location: number | BigInt): number | BigInt;
+    getSectionByName(sectionName: string): ELFSectionHeaderEntry;
+    getSectionsByName(sectionName: string): ELFSectionHeaderEntry[];
+    getSymbolByName(symbolName: string): ELFSymbol;
+    getSymbolsByName(symbolName: string): ELFSymbol[];
 }
 
 export interface ELFFile extends ELFFunctions {

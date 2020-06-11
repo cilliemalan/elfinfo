@@ -1,25 +1,39 @@
 import { ELFFunctions, ELFSymbol, ELFSectionHeaderEntry, ELFProgramHeaderEntry, ELFFile, SectionHeaderEntryType } from "./types";
 import { add, subtract } from './biginthelpers';
 
+
+function filterSymbolsByVirtualAddress(elf: ELFFile, start: number|BigInt, size: number|BigInt) : ELFSymbol[] {
+    
+    const end = add(start, size);
+
+    const symbols = [];
+    for (const section of elf.sectionHeaderEntries) {
+        if (section.symbols) {
+            for (const symbol of section.symbols) {
+                if (symbol.value >= start && symbol.value < end) {
+                    symbols.push(symbol);
+                }
+            }
+        }
+    }
+
+    return symbols;
+}
+
 function getSymbols(this: ELFFile, ): ELFSymbol[] {
     return this.sectionHeaderEntries
-        .filter(she => she.type == SectionHeaderEntryType.SymTab)
+        .filter(she => she.symbols && she.symbols.length)
         .flatMap(x => x.symbols);
 }
 
 function getSymbolsInSection(this: ELFFile, sectionOrIndex: ELFSectionHeaderEntry | number): ELFSymbol[] {
     const section = typeof sectionOrIndex == 'number' ? this.sectionHeaderEntries[sectionOrIndex] : sectionOrIndex;
-
-    if (section.symbols == null) {
-        return [];
-    } else {
-        return section.symbols;
-    }
+    return filterSymbolsByVirtualAddress(this, section.addr, section.size);
 }
 
 function getSymbolsInSegment(this: ELFFile, segmentOrIndex: ELFProgramHeaderEntry | number): ELFSymbol[] {
-    return this.getSectionsInSegment(segmentOrIndex)
-        .flatMap(section => section.symbols || []);
+    const segment = typeof segmentOrIndex == 'number' ? this.programHeaderEntries[segmentOrIndex] : segmentOrIndex;
+    return filterSymbolsByVirtualAddress(this, segment.vaddr, segment.memsz);
 }
 
 function getSectionsInSegment(this: ELFFile, segmentOrIndex: ELFProgramHeaderEntry | number): ELFSectionHeaderEntry[] {
@@ -28,27 +42,34 @@ function getSectionsInSegment(this: ELFFile, segmentOrIndex: ELFProgramHeaderEnt
     return this.sectionHeaderEntries.filter(x => x.addr > segment.vaddr && x.addr < add(segment.vaddr, segment.memsz));
 }
 
-function getSectionForSymbol(this: ELFFile, symbol: ELFSymbol): ELFSectionHeaderEntry {
+function getSectionsForSymbol(this: ELFFile, symbol: ELFSymbol): ELFSectionHeaderEntry[] {
+    const sections = [];
     for (const section of this.sectionHeaderEntries) {
-        if (section.symbols && section.symbols.includes(symbol)) {
-            return section;
+        if (symbol.value >= section.addr && symbol.value <= add(section.addr, section.size)) {
+            sections.push(section);
         }
     }
 
-    return null;
+    return sections;
+}
+
+function getSectionForSymbol(this: ELFFile, symbol: ELFSymbol): ELFSectionHeaderEntry {
+    return this.getSectionsForSymbol(symbol)[0]
+}
+
+function getSegmentsForSymbol(this: ELFFile, symbol: ELFSymbol): ELFProgramHeaderEntry[] {
+    const segments = [];
+    for (const segment of this.programHeaderEntries) {
+        if (symbol.value >= segment.vaddr && symbol.value <= add(segment.vaddr, segment.memsz)) {
+            segments.push(segment);
+        }
+    }
+
+    return segments;
 }
 
 function getSegmentForSymbol(this: ELFFile, symbol: ELFSymbol): ELFProgramHeaderEntry {
-    const section = this.getSectionForSymbol(symbol);
-    if (section != null) {
-        for (const segment of this.programHeaderEntries) {
-            if (section.addr > segment.vaddr && section.addr < add(segment.vaddr, segment.memsz)) {
-                return segment;
-            }
-        }
-    } else {
-        return null;
-    }
+    return this.getSegmentsForSymbol(symbol)[0];
 }
 
 function getSymbolsAtVirtualMemoryLocation(this: ELFFile, location: number | BigInt): ELFSymbol[] {
@@ -115,18 +136,60 @@ function virtualAddressToPhysical(this: ELFFile, location: number | BigInt): num
     for (const segment of this.programHeaderEntries) {
         if (location >= segment.vaddr && location <= add(segment.vaddr, segment.memsz)) {
             const offset = subtract(location, segment.vaddr);
-            return add(segment.paddr, offset);
+            if (offset < segment.filesz) {
+                return add(segment.paddr, offset);
+            }
         }
     }
+
+    return null;
 }
 
 function physicalAddressToVirtual(this: ELFFile, location: number | BigInt): number | BigInt {
     for (const segment of this.programHeaderEntries) {
-        if (location >= segment.paddr && location <= add(segment.paddr, segment.filesz)) {
+        if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
             const offset = subtract(location, segment.paddr);
             return add(segment.vaddr, offset);
         }
     }
+
+    return null;
+}
+
+function getSectionByName(this: ELFFile, sectionName: string): ELFSectionHeaderEntry {
+    return this.getSectionsByName(sectionName)[0];
+}
+
+function getSectionsByName(this: ELFFile, sectionName: string): ELFSectionHeaderEntry[] {
+    return this.sectionHeaderEntries.filter(s => s.name.toUpperCase() == sectionName.toUpperCase());
+}
+
+function getSymbolByName(this: ELFFile, symbolName: string): ELFSymbol {
+    for (const section of this.sectionHeaderEntries) {
+        if (section.symbols) {
+            for (const symbol of section.symbols) {
+                if (symbol.name && symbol.name.toUpperCase() == symbolName.toUpperCase()) {
+                    return symbol
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
+function getSymbolsByName(this: ELFFile, symbolName: string): ELFSymbol[] {
+    const matches = [];
+    for (const section of this.sectionHeaderEntries) {
+        if (section.symbols) {
+            for (const symbol of section.symbols) {
+                if (symbol.name && symbol.name.toUpperCase() == symbolName.toUpperCase()) {
+                    matches.push(symbol);
+                }
+            }
+        }
+    }
+    return matches;
 }
 
 export function getFunctions(): ELFFunctions {
@@ -135,7 +198,9 @@ export function getFunctions(): ELFFunctions {
         getSymbolsInSection,
         getSymbolsInSegment,
         getSectionsInSegment,
+        getSectionsForSymbol,
         getSectionForSymbol,
+        getSegmentsForSymbol,
         getSegmentForSymbol,
         getSymbolsAtVirtualMemoryLocation,
         getSymbolsAtPhysicalMemoryLocation,
@@ -144,6 +209,10 @@ export function getFunctions(): ELFFunctions {
         getSegmentsAtVirtualMemoryLocation,
         getSegmentsAtPhysicalMemoryLocation,
         virtualAddressToPhysical,
-        physicalAddressToVirtual
+        physicalAddressToVirtual,
+        getSectionByName,
+        getSectionsByName,
+        getSymbolByName,
+        getSymbolsByName
     }
 }
