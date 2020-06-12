@@ -72,5 +72,4 @@ export function open(pathOrDataOrFile: string | Uint8Array | Buffer | ArrayBuffe
 }
 
 export * from './types';
-export * from './strings';
 export * from './debug';
