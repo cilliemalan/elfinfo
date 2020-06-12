@@ -3,7 +3,6 @@ import { ABI, ISA, ObjectType, ELFOpenResult } from "./types";
 import { readProgramHeaderEntries } from "./programHeaders";
 import { readSectionHeaderEntries } from "./sections";
 import { Reader } from "./reader";
-import { Buffer } from 'buffer';
 import { getFunctions } from "./elffunctions";
 
 export async function readElf(reader: Reader): Promise<ELFOpenResult> {
