@@ -213,6 +213,10 @@ Symbols for section #24 .symtab:
         57 0x00000000004003a8 0x00000000 Function                     Global Default    _init
 ```
 
+# Documentation
+[//]: # (Documentation Start)
+[//]: # (Documentation End)
+
 # Testing
 In order to run tests you will need to have the following programs installed and in your path
 - [gcc](https://gcc.gnu.org/)
