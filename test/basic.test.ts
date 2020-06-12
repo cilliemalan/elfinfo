@@ -25,6 +25,6 @@ describe("Basic Operations", () => {
                     expect(elf.warnings.length).toBe(0);
                 }
             });
-        })
+        });
 
 });
