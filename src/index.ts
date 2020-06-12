@@ -34,7 +34,8 @@ function isBlob(item: any): item is Blob {
 }
 
 /**
- * Parse an ELF file. Parsing will be async if a path, blob, or promise-based file handle is specified and synchronous if the contents is specified.
+ * Parse an ELF file.
+ * @summary Parsing will be async if a path, blob, or file handle is specified and synchronous if an array or buffer is specified.
  * @param {any} pathOrDataOrFile the path to the ELF file, or the data for the file.
  * @param {function} [callback] When specified, this will be called after the file is done parsing.
  * @returns {Promise<ELFOpenResult>} a result indicating the success or failure of parsing and the data for the ELF file.
