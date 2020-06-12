@@ -35,9 +35,9 @@
     "coverage": "jest --forceExit --coverage --verbose --detectOpenHandles",
     "watch-test": "npm run test -- --watchAll",
     "rollup": "rollup -c",
-    "prepare": "tsc",
+    "prepare": "tsc && gendocs",
     "gendocs": "jsdoc2md --files src/*.ts --template README.template.md --configure ./jsdoc2md.json  > README.md",
-    "prepublish": "jest --detectOpenHandles && tsc"
+    "prepublishOnly": "jest --detectOpenHandles && tsc"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.1",
