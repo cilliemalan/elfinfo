@@ -14,11 +14,15 @@ function toHex(n: number | BigInt, padamount: number = 0) {
 
 /**
  * Print debug information for an ELF file, similar to readelf or objdump.
- * @param {ELF} file the ELF file data to print debug info for.
+ * @param {ELF | ELFOpenResult} file the ELF file data to print debug info for.
  * @returns {string} Debug outpt.
  */
-export function debug(elf: ELF): string {
+export function debug(elf: ELF | ELFOpenResult): string {
     let result = "";
+
+    if (!(elf instanceof ELF)) {
+        elf = elf.elf;
+    }
 
     if (elf) {
         const addrpad = elf.bits / 4;

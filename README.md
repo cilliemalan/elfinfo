@@ -241,7 +241,7 @@ Print debug information for an ELF file, similar to readelf or objdump.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| file | [<code>ELF</code>](#ELF) | the ELF file data to print debug info for. |
+| file | [<code>ELF</code>](#ELF) \| <code>ELFOpenResult</code> | the ELF file data to print debug info for. |
 
 <a name="ELF"></a>
 
