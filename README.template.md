@@ -43,21 +43,20 @@ things mean according to this library:
   There are many kinds of sections, but the main ones are those that contain program data (either code or data), symbols,
   and strings. elfinfo currently parses string and symbol sections.
 - a **Symbol** can refer to many different things, but usually refers to a *function* or *variable* used in code.
-  There are also symbols for sections and files, but these are more for debugging and operating system purposes
-  so locations in memory can be related to other things, and don't relate to the execution of the code itself. Symbols
-  are stored in symbol table sections, and the names of symbols are stored in string table sections. Stored with the symbol is the
+  There are also symbols for sections and files. Symbols are used for debugging or other analysis and do not affect program execution. Symbols
+  are stored in symbol table sections and the names of symbols are stored in string table sections. Stored with the symbol is the
   name of the symbol, the type of the symbol, the virtual memory location of the symbol, sometimes the size of the symbol,
   and some other things.
 - a **Virtual Address** refers to the address a segment, section, or symbol has in memory. This is sometimes referred
   to as a *VMA address* or a *memory address*.
-- a **Physical Address** refers to the address a segment, section, or symbol has on disk. This does not refer to the
+- a **Physical Address** refers to the address a segment, section, or symbol has in non-volatile storage. This does not refer to the
   offset in the file. A normal ELF executable for an operating system like linux will usually have virtual addresses
   match the physical addresses since the file can be mapped into memory wherever needed. However, in embedded systems
-  the data for virtual memory locations needs to be stored on disk somewhere. This is the physical address. This is
+  the data for virtual memory locations needs to be stored in flash somewhere. This is the physical address. This is
   also called the *LMA address* or *load address*.  Some symbols and sections don't have a physical address (for example,
   BSS section symbols that are cleared in memory on startup).
 - a **File Offset** refers to a location in the ELF file itself. Only segments have file offsets, but the file offset
-  can be calculated for a section or symbol, if it exists.
+  can be calculated for a section or symbol if the symbol or section has a physical address.
 
 ### What gets parsed
 A debug function is also provided, that spits out readelf/objdump like stuff.
