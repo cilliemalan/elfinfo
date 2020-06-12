@@ -30,12 +30,10 @@
   "dependencies": {},
   "scripts": {
     "build": "tsc",
-    "watch": "tsc -w",
     "test": "jest --detectOpenHandles",
     "coverage": "jest --forceExit --coverage --verbose --detectOpenHandles",
-    "watch-test": "npm run test -- --watchAll",
     "rollup": "rollup -c",
-    "prepare": "tsc && gendocs",
+    "prepare": "npm run rollup && tsc && npm run gendocs",
     "gendocs": "jsdoc2md --files src/*.ts --template README.template.md --configure ./jsdoc2md.json  > README.md",
     "prepublishOnly": "jest --detectOpenHandles && tsc"
   },
@@ -45,6 +43,7 @@
     "@babel/preset-env": "^7.10.2",
     "@babel/preset-typescript": "^7.10.1",
     "@rollup/plugin-commonjs": "^13.0.0",
+    "@rollup/plugin-node-resolve": "^8.0.1",
     "@types/chai": "^4.2.11",
     "@types/jest": "^25.2.3",
     "@types/node": "^14.0.12",
