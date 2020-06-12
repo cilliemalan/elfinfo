@@ -237,12 +237,12 @@ export interface ELFSymbol {
     value: number | BigInt;
     size: number | BigInt;
     info: number;
-    type: number;
+    type: SymbolType;
     typeDescription: string;
-    binding: number;
+    binding: SymbolBinding;
     bindingDescription: string;
     other: number;
-    visibility: number;
+    visibility: SymbolVisibility;
     visibilityDescription: string;
     shndx: number;
     shndxDescription: string;
