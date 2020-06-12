@@ -1,4 +1,4 @@
-import { ELFFile, SectionHeaderEntryType, ELFOpenResult } from './types';
+import { ELF, SectionHeaderEntryType, ELFOpenResult } from './types';
 
 function toHex(n: number | BigInt, padamount: number = 0) {
     const hexchars = n.toString(16);
@@ -11,7 +11,7 @@ function toHex(n: number | BigInt, padamount: number = 0) {
     return `0x${hexchars.padStart(padamount, '0')}`;
 }
 
-export function debug(file: ELFFile): string {
+export function debug(file: ELF): string {
     let result = "";
 
     if (file) {

@@ -2,7 +2,7 @@ import { ELFOpenResult } from "./types";
 import * as reader from "./reader";
 import { FileHandle } from "fs/promises";
 
-import { readElf } from "./elf";
+import { readElf } from "./parser";
 
 function isClass(item: any, type: string) {
     return (this && this[type] &&

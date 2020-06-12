@@ -1,173 +1,281 @@
-import { abiToString, isaToString, objectTypeToString, elfFlagsToString } from "./strings";
-import { ABI, ISA, ObjectType, ELFOpenResult } from "./types";
-import { readProgramHeaderEntries } from "./programHeaders";
-import { readSectionHeaderEntries } from "./sections";
-import { Reader } from "./reader";
-import { getFunctions } from "./elffunctions";
+import { ABI, ISA, ObjectType, ELFProgramHeaderEntry, ELFSectionHeaderEntry, ELFSymbol } from "./types";
+import { ELF as ELFInterface } from './types';
+import { add, subtract } from "./biginthelpers";
 
-export async function readElf(reader: Reader): Promise<ELFOpenResult> {
+function filterSymbolsByVirtualAddress(elf: ELF, start: number | BigInt, size: number | BigInt): ELFSymbol[] {
 
-    const result: ELFOpenResult = {
-        success: false,
-        errors: [],
-        warnings: [],
-        elf: null
-    };
+    const end = add(start, size);
 
-    try {
-
-        await reader.open();
-
-        const size = await reader.size();
-        if (size <= 0x40) {
-            result.errors.push("Not a valid ELF file. Too small.");
-        } else {
-            const view = await reader.view(16);
-
-            const magic = 0x464c457f;
-            if (view.getInt32(0, true) !== magic) {
-                result.warnings.push("Not a valid ELF file. The file does not start with 0x7f ELF.");
-            }
-
-            const eiClass = view.getUint8(4);
-            const eiData = view.getUint8(5);
-            const eiVer = view.getUint8(6);
-            const eiAbi = view.getUint8(7);
-            const eiAbiVer = view.getUint8(8);
-
-            if (eiClass < 1 || eiClass > 2) {
-                result.errors.push("Not a valid ELF file. Class is invalid");
-            }
-
-            if (eiData < 1 || eiData > 2) {
-                result.errors.push("Not a valid ELF file. Endianness is invalid");
-            }
-
-            if (eiVer != 1) {
-                result.warnings.push("Not a valid ELF file. Version is invalid");
-            }
-
-            if (result.errors.length == 0) {
-
-                const bits = eiClass === 1 ? 32 : 64;
-                const bigEndian = eiData !== 1;
-                const abi = eiAbi as ABI;
-                const sizeLeft = bits == 32 ? 0x24 : 0x30;
-                const headerview = await reader.view(sizeLeft);
-                const readUInt16 = (ix: number) => headerview.getUint16(ix, !bigEndian);
-                const readUInt32 = (ix: number) => headerview.getUint32(ix, !bigEndian);
-                const readUInt64 = (ix: number) => headerview.getBigInt64(ix, !bigEndian);
-
-                let ix = 0;
-                const eType = readUInt16(ix); ix += 2;
-                const eMachine = readUInt16(ix); ix += 2;
-                const eVersion = readUInt32(ix); ix += 4;
-                let eEntry, ePHOff, eSHOff;
-                if (bits === 32) {
-                    eEntry = readUInt32(ix); ix += 4;
-                    ePHOff = readUInt32(ix); ix += 4;
-                    eSHOff = readUInt32(ix); ix += 4;
-                } else {
-                    eEntry = readUInt64(ix); ix += 8;
-                    ePHOff = readUInt64(ix); ix += 8;
-                    eSHOff = readUInt64(ix); ix += 8;
-                }
-                const eFlags = readUInt32(ix); ix += 4;
-                const eHSize = readUInt16(ix); ix += 2;
-                const ePHEntSize = readUInt16(ix); ix += 2;
-                const ePHNum = readUInt16(ix); ix += 2;
-                const eSHEntSize = readUInt16(ix); ix += 2;
-                const eSHNum = readUInt16(ix); ix += 2;
-                const eSHStrNdx = readUInt16(ix); ix += 2;
-
-                if (bits === 32 && eHSize !== 0x34 ||
-                    bits == 64 && eHSize !== 0x40) {
-                    result.errors.push("Invalid ELF file. Unexpected header size");
-                }
-
-                if ((ePHNum != 0 && (ePHOff < eHSize || ePHOff > size)) ||
-                    (eSHNum != 0 && (eSHOff < eHSize || eSHOff > size))) {
-                    result.errors.push("Invalid ELF file. Invalid offsets");
-                }
-
-                if (ePHNum != 0 && ((bits == 32 && ePHEntSize < 0x20) ||
-                    (bits == 64 && ePHEntSize < 0x38) ||
-                    (ePHEntSize > 0xff))) {
-                    result.errors.push("Invalid ELF file. Program header entry size invalid");
-                }
-
-                if (eSHNum != 0 && ((bits == 32 && eSHEntSize < 0x28) ||
-                    (bits == 64 && eSHEntSize < 0x40) ||
-                    (ePHEntSize > 0xff))) {
-                    result.errors.push("Invalid ELF file. Section header entry size invalid");
-                }
-
-                if (result.errors.length == 0) {
-                    const type = eType as ObjectType;
-                    const isa = eMachine as ISA;
-
-                    const segments = await readProgramHeaderEntries(reader, ePHOff, ePHEntSize, ePHNum, bits, bigEndian);
-                    const sections = await readSectionHeaderEntries(reader, eSHOff, eSHEntSize, eSHNum, bits, bigEndian, eSHStrNdx);
-
-                    result.elf = {
-                        path: null,
-                        class: eiClass,
-                        classDescription: eiClass == 1 ? 'ELF32' : 'ELF64',
-                        data: eiData,
-                        dataDescription: eiData == 1 ? 'Little endian' : 'Big endian',
-                        version: eiVer,
-                        bits,
-                        abi,
-                        abiVersion: eiAbiVer,
-                        abiDescription: abiToString(abi),
-                        isa,
-                        isaDescription: isaToString(isa),
-                        isaVersion: eVersion,
-                        type,
-                        typeDescription: objectTypeToString(type),
-                        flags: eFlags,
-                        flagsDescription: elfFlagsToString(isa, eFlags),
-                        entryPoint: eEntry,
-                        programHeaderOffset: ePHOff,
-                        programHeaderEntrySize: ePHEntSize,
-                        numProgramHeaderEntries: ePHNum,
-                        sectionHeaderOffset: eSHOff,
-                        sectionHeaderEntrySize: eSHEntSize,
-                        numSectionHeaderEntries: eSHNum,
-                        shstrIndex: eSHStrNdx,
-                        segments,
-                        sections,
-                        ...getFunctions()
-                    };
-
-                    // bind all the functions to this specific instance
-                    // TODO: do we need to?
-                    /*
-                    Object.keys(result.elf)
-                        .forEach(x=> {
-                            const elf: any = result.elf;
-                            const prop = elf[x];
-                            if (typeof prop == 'function') {
-                                elf[x] = prop.bind(elf);
-                            }
-                        })
-                    */
-                    result.success = true;
+    const symbols = [];
+    for (const section of elf.sections) {
+        if (section.symbols) {
+            for (const symbol of section.symbols) {
+                if (symbol.value >= start && symbol.value < end) {
+                    symbols.push(symbol);
                 }
             }
         }
-    } catch (e) {
-        result.errors.push(`Exception caught: ${e.toString()}`);
     }
 
-    // close the file
-    if (reader) {
-        try {
-            await reader.close();
-        } catch (e) {
-            result.errors.push(`Exception caught: ${e.toString()}`);
+    return symbols;
+}
+
+export class ELF implements ELFInterface {
+    path: string;
+    class: number;
+    classDescription: string;
+    data: number;
+    dataDescription: string;
+    version: number;
+    bits: number;
+    abi: ABI;
+    abiDescription: string;
+    abiVersion: number;
+    type: ObjectType;
+    typeDescription: string;
+    isa: ISA;
+    isaDescription: string;
+    isaVersion: number;
+    flags: number;
+    flagsDescription: string;
+    entryPoint: number | BigInt;
+    programHeaderOffset: number | BigInt;
+    sectionHeaderOffset: number | BigInt;
+    programHeaderEntrySize: number;
+    numProgramHeaderEntries: number;
+    sectionHeaderEntrySize: number;
+    numSectionHeaderEntries: number;
+    shstrIndex: number;
+    segments: ELFProgramHeaderEntry[];
+    sections: ELFSectionHeaderEntry[];
+
+    getSymbols(): ELFSymbol[] {
+        return this.sections
+            .filter(she => she.symbols && she.symbols.length)
+            .flatMap(x => x.symbols);
+    }
+
+    getSymbolsInSection(sectionOrIndex: ELFSectionHeaderEntry | number): ELFSymbol[] {
+        const section = typeof sectionOrIndex == 'number' ? this.sections[sectionOrIndex] : sectionOrIndex;
+        return filterSymbolsByVirtualAddress(this, section.addr, section.size);
+    }
+
+    getSymbolsInSegment(segmentOrIndex: ELFProgramHeaderEntry | number): ELFSymbol[] {
+        const segment = typeof segmentOrIndex == 'number' ? this.segments[segmentOrIndex] : segmentOrIndex;
+        return filterSymbolsByVirtualAddress(this, segment.vaddr, segment.memsz);
+    }
+
+    getSectionsInSegment(segmentOrIndex: ELFProgramHeaderEntry | number): ELFSectionHeaderEntry[] {
+        const segment = typeof segmentOrIndex == 'number' ? this.segments[segmentOrIndex] : segmentOrIndex;
+
+        return this.sections.filter(x => x.addr > segment.vaddr && x.addr < add(segment.vaddr, segment.memsz));
+    }
+
+    getSectionsForSymbol(symbol: ELFSymbol): ELFSectionHeaderEntry[] {
+        const sections = [];
+        for (const section of this.sections) {
+            if (symbol.value >= section.addr && symbol.value <= add(section.addr, section.size)) {
+                sections.push(section);
+            }
         }
+
+        return sections;
     }
 
-    return result;
+    getSectionForSymbol(symbol: ELFSymbol): ELFSectionHeaderEntry {
+        return this.getSectionsForSymbol(symbol)[0]
+    }
+
+    getSegmentsForSymbol(symbol: ELFSymbol): ELFProgramHeaderEntry[] {
+        const segments = [];
+        for (const segment of this.segments) {
+            if (symbol.value >= segment.vaddr && symbol.value <= add(segment.vaddr, segment.memsz)) {
+                segments.push(segment);
+            }
+        }
+
+        return segments;
+    }
+
+    getSegmentForSymbol(symbol: ELFSymbol): ELFProgramHeaderEntry {
+        return this.getSegmentsForSymbol(symbol)[0];
+    }
+
+    getSymbolsAtVirtualMemoryLocation(location: number | BigInt): ELFSymbol[] {
+        const symbols: ELFSymbol[] = [];
+        for (const section of this.sections) {
+            if (section.symbols) {
+                for (const symbol of section.symbols) {
+                    if (symbol.size == 0) {
+                        if (symbol.value == location) {
+                            symbols.push(symbol);
+                        }
+                    } else {
+                        if (location >= symbol.value && location < add(symbol.value, symbol.size)) {
+                            symbols.push(symbol);
+                        }
+                    }
+                }
+            }
+        }
+
+        return symbols;
+    }
+
+    getSymbolsAtPhysicalMemoryLocation(location: number | BigInt): ELFSymbol[] {
+        return this.getSymbolsAtVirtualMemoryLocation(this.physicalAddressToVirtual(location));
+    }
+
+    getSectionsAtVirtualMemoryLocation(location: number | BigInt): ELFSectionHeaderEntry[] {
+        const sections = [];
+        for (const section of this.sections) {
+            if (location >= section.addr && location < add(section.addr, section.size)) {
+                sections.push(section);
+            }
+        }
+
+        return sections;
+    }
+
+    getSectionsAtPhysicalMemoryLocation(location: number | BigInt): ELFSectionHeaderEntry[] {
+        return this.getSectionsAtVirtualMemoryLocation(this.physicalAddressToVirtual(location));
+    }
+
+    getSegmentsAtVirtualMemoryLocation(location: number | BigInt): ELFProgramHeaderEntry[] {
+        const segments = [];
+        for (const segment of this.segments) {
+            if (location >= segment.vaddr && location < add(segment.vaddr, segment.memsz)) {
+                segments.push(segment);
+            }
+        }
+        return segments;
+    }
+
+    getSegmentsAtPhysicalMemoryLocation(location: number | BigInt): ELFProgramHeaderEntry[] {
+        const segments = [];
+        for (const segment of this.segments) {
+            if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
+                segments.push(segment);
+            }
+        }
+        return segments;
+    }
+
+    virtualAddressToPhysical(location: number | BigInt): number | BigInt {
+        for (const segment of this.segments) {
+            if (location >= segment.vaddr && location <= add(segment.vaddr, segment.memsz)) {
+                const offset = subtract(location, segment.vaddr);
+                if (offset < segment.filesz) {
+                    return add(segment.paddr, offset);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    virtualAddressToFileOffset(location: number | BigInt): number | BigInt {
+        for (const segment of this.segments) {
+            if (location >= segment.vaddr && location < add(segment.vaddr, segment.memsz)) {
+                const offset = subtract(location, segment.vaddr);
+                if (offset < segment.filesz) {
+                    return add(segment.offset, offset);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    physicalAddressToVirtual(location: number | BigInt): number | BigInt {
+        for (const segment of this.segments) {
+            if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
+                const offset = subtract(location, segment.paddr);
+                return add(segment.vaddr, offset);
+            }
+        }
+
+        return null;
+    }
+
+    physicalAddressToFileOffset(location: number | BigInt): number | BigInt {
+        for (const segment of this.segments) {
+            if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
+                const offset = subtract(location, segment.paddr);
+                return add(segment.offset, offset);
+            }
+        }
+
+        return null;
+    }
+
+    fileOffsetToPhysicalAddress(location: number | BigInt): number | BigInt {
+        for (const segment of this.segments) {
+            if (location >= segment.offset && location < add(segment.offset, segment.filesz)) {
+                const offset = subtract(location, segment.offset);
+                return add(segment.paddr, offset);
+            }
+        }
+
+        return null;
+    }
+
+    fileOffsetToVirtualAddress(location: number | BigInt): number | BigInt {
+        for (const segment of this.segments) {
+            if (location >= segment.offset && location < add(segment.offset, segment.filesz)) {
+                const offset = subtract(location, segment.offset);
+                return add(segment.vaddr, offset);
+            }
+        }
+
+        return null;
+    }
+
+    getSectionByName(sectionName: string): ELFSectionHeaderEntry {
+        return this.getSectionsByName(sectionName)[0];
+    }
+
+    getSectionsByName(sectionName: string): ELFSectionHeaderEntry[] {
+        return this.sections.filter(s => s.name.toUpperCase() == sectionName.toUpperCase());
+    }
+
+    getSymbolByName(symbolName: string): ELFSymbol {
+        for (const section of this.sections) {
+            if (section.symbols) {
+                for (const symbol of section.symbols) {
+                    if (symbol.name && symbol.name.toUpperCase() == symbolName.toUpperCase()) {
+                        return symbol
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    getSymbolsByName(symbolName: string): ELFSymbol[] {
+        const matches = [];
+        for (const section of this.sections) {
+            if (section.symbols) {
+                for (const symbol of section.symbols) {
+                    if (symbol.name && symbol.name.toUpperCase() == symbolName.toUpperCase()) {
+                        matches.push(symbol);
+                    }
+                }
+            }
+        }
+        return matches;
+    }
+
+    getSymbolVirtualAddress(symbol: ELFSymbol): number | BigInt {
+        return symbol.value;
+    }
+
+    getSymbolPhysicalAddress(symbol: ELFSymbol): number | BigInt {
+        return this.virtualAddressToPhysical(symbol.value);
+    }
+
+    getSymbolFileOffset(symbol: ELFSymbol): number | BigInt {
+        return this.virtualAddressToFileOffset(symbol.value);
+    }
 }

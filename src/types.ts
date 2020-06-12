@@ -137,39 +137,10 @@ export interface ELFOpenResult {
     success: boolean;
     errors: string[];
     warnings: string[];
-    elf: ELFFile;
-}
-export interface ELFFunctions {
-    getSymbols(): ELFSymbol[];
-    getSymbolsInSection(sectionOrIndex: ELFSectionHeaderEntry | number): ELFSymbol[];
-    getSymbolsInSegment(segmentOrIndex: ELFProgramHeaderEntry | number): ELFSymbol[];
-    getSectionsInSegment(segmentOrIndex: ELFProgramHeaderEntry | number): ELFSectionHeaderEntry[];
-    getSectionForSymbol(symbol: ELFSymbol): ELFSectionHeaderEntry;
-    getSectionsForSymbol(symbol: ELFSymbol): ELFSectionHeaderEntry[];
-    getSegmentForSymbol(symbol: ELFSymbol): ELFProgramHeaderEntry;
-    getSegmentsForSymbol(symbol: ELFSymbol): ELFProgramHeaderEntry[];
-    getSymbolsAtVirtualMemoryLocation(location: number | BigInt): ELFSymbol[];
-    getSymbolsAtPhysicalMemoryLocation(location: number | BigInt): ELFSymbol[];
-    getSectionsAtVirtualMemoryLocation(location: number | BigInt): ELFSectionHeaderEntry[];
-    getSectionsAtPhysicalMemoryLocation(location: number | BigInt): ELFSectionHeaderEntry[];
-    getSegmentsAtVirtualMemoryLocation(location: number | BigInt): ELFProgramHeaderEntry[];
-    getSegmentsAtPhysicalMemoryLocation(location: number | BigInt): ELFProgramHeaderEntry[];
-    virtualAddressToPhysical(location: number | BigInt): number | BigInt;
-    virtualAddressToFileOffset(location: number | BigInt): number | BigInt;
-    physicalAddressToVirtual(location: number | BigInt): number | BigInt;
-    physicalAddressToFileOffset(location: number | BigInt): number | BigInt;
-    fileOffsetToPhysicalAddress(location: number | BigInt): number | BigInt;
-    fileOffsetToVirtualAddress(location: number | BigInt): number | BigInt;
-    getSectionByName(sectionName: string): ELFSectionHeaderEntry;
-    getSectionsByName(sectionName: string): ELFSectionHeaderEntry[];
-    getSymbolByName(symbolName: string): ELFSymbol;
-    getSymbolsByName(symbolName: string): ELFSymbol[];
-    getSymbolVirtualAddress(symbol: ELFSymbol): number | BigInt;
-    getSymbolPhysicalAddress(symbol: ELFSymbol): number | BigInt;
-    getSymbolFileOffset(symbol: ELFSymbol): number | BigInt;
+    elf: ELF;
 }
 
-export interface ELFFile extends ELFFunctions {
+export interface ELF {
     path: string;
     class: number;
     classDescription: string;
@@ -197,6 +168,34 @@ export interface ELFFile extends ELFFunctions {
     shstrIndex: number;
     segments: ELFProgramHeaderEntry[];
     sections: ELFSectionHeaderEntry[];
+    
+    getSymbols(): ELFSymbol[];
+    getSymbolsInSection(sectionOrIndex: ELFSectionHeaderEntry | number): ELFSymbol[];
+    getSymbolsInSegment(segmentOrIndex: ELFProgramHeaderEntry | number): ELFSymbol[];
+    getSectionsInSegment(segmentOrIndex: ELFProgramHeaderEntry | number): ELFSectionHeaderEntry[];
+    getSectionForSymbol(symbol: ELFSymbol): ELFSectionHeaderEntry;
+    getSectionsForSymbol(symbol: ELFSymbol): ELFSectionHeaderEntry[];
+    getSegmentForSymbol(symbol: ELFSymbol): ELFProgramHeaderEntry;
+    getSegmentsForSymbol(symbol: ELFSymbol): ELFProgramHeaderEntry[];
+    getSymbolsAtVirtualMemoryLocation(location: number | BigInt): ELFSymbol[];
+    getSymbolsAtPhysicalMemoryLocation(location: number | BigInt): ELFSymbol[];
+    getSectionsAtVirtualMemoryLocation(location: number | BigInt): ELFSectionHeaderEntry[];
+    getSectionsAtPhysicalMemoryLocation(location: number | BigInt): ELFSectionHeaderEntry[];
+    getSegmentsAtVirtualMemoryLocation(location: number | BigInt): ELFProgramHeaderEntry[];
+    getSegmentsAtPhysicalMemoryLocation(location: number | BigInt): ELFProgramHeaderEntry[];
+    virtualAddressToPhysical(location: number | BigInt): number | BigInt;
+    virtualAddressToFileOffset(location: number | BigInt): number | BigInt;
+    physicalAddressToVirtual(location: number | BigInt): number | BigInt;
+    physicalAddressToFileOffset(location: number | BigInt): number | BigInt;
+    fileOffsetToPhysicalAddress(location: number | BigInt): number | BigInt;
+    fileOffsetToVirtualAddress(location: number | BigInt): number | BigInt;
+    getSectionByName(sectionName: string): ELFSectionHeaderEntry;
+    getSectionsByName(sectionName: string): ELFSectionHeaderEntry[];
+    getSymbolByName(symbolName: string): ELFSymbol;
+    getSymbolsByName(symbolName: string): ELFSymbol[];
+    getSymbolVirtualAddress(symbol: ELFSymbol): number | BigInt;
+    getSymbolPhysicalAddress(symbol: ELFSymbol): number | BigInt;
+    getSymbolFileOffset(symbol: ELFSymbol): number | BigInt;
 }
 
 export interface ELFProgramHeaderEntry {
