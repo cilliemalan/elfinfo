@@ -219,11 +219,11 @@ Symbols for section #24 .symtab:
 
 <a name="open"></a>
 
-## open(pathOrDataOrFile, [callback]) ⇒ <code>ELFOpenResult</code>
+## open(pathOrDataOrFile, [callback]) ⇒ <code>Promise.&lt;ELFOpenResult&gt;</code>
 Parse an ELF file. Parsing will be async if a path, blob, or promise-based file handle is specified and synchronous if the contents is specified.
 
 **Kind**: global function  
-**Returns**: <code>ELFOpenResult</code> - a result indicating the success or failure of parsing and the data for the ELF file.  
+**Returns**: <code>Promise.&lt;ELFOpenResult&gt;</code> - a result indicating the success or failure of parsing and the data for the ELF file.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
