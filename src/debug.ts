@@ -11,6 +11,10 @@ function toHex(n: number | BigInt, padamount: number = 0) {
     return `0x${hexchars.padStart(padamount, '0')}`;
 }
 
+/**
+ * Print debug information for an ELF file, similar to readelf or objdump.
+ * @param file the ELF file data to print debug info for.
+ */
 export function debug(file: ELF): string {
     let result = "";
 

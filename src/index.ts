@@ -33,6 +33,13 @@ function isBlob(item: any): item is Blob {
     return isClass(item, 'Blob');
 }
 
+/**
+ * Parse an ELF file. Parsing will be async if a path, blob, or promise-based file handle is specified and
+ * synchronous if the contents is specified.
+ * @param pathOrDataOrFile the path to the ELF file, or the data for the file.
+ * @param callback When specified, this will be called after the file is done parsing.
+ * @returns a result indicating the success or failure of parsing and the data for the ELF file.
+ */
 export function open(pathOrDataOrFile: string | Uint8Array | Buffer | ArrayBuffer | Blob | FileHandle | Array<number> | number, callback: (result: ELFOpenResult) => void | null = null): Promise<ELFOpenResult> {
 
     let promise: Promise<ELFOpenResult>;
