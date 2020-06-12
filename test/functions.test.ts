@@ -2,9 +2,9 @@ import request from "supertest";
 import * as elfinfo from "../src";
 import * as fs from "fs";
 import { testprograms } from './testprograms';
-import { ELFFile, SymbolType } from "../src";
+import { ELF, SymbolType } from "../src";
 
-async function load(path: string) : Promise<ELFFile> {
+async function load(path: string) : Promise<ELF> {
     const elf = await elfinfo.open(path);
     elf.warnings.forEach(w => console.warn(w));
     elf.errors.forEach(e => console.error(e));
