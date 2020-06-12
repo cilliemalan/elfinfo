@@ -6,14 +6,14 @@ import { debug } from "../src";
 describe("Debug", () => {
 
     it(`should produce output for executable ELF`, async () => {
-        const elf = await elfinfo.open(testprograms['clang-x86'].program);
+        const elf = await elfinfo.open(testprograms['clang-x64'].program);
         const output = debug(elf.elf);
         expect(output).not.toBeNull();
         expect(output.length).toBeGreaterThan(0);
     });
     
     it(`should produce output for object ELF`, async () => {
-        const elf = await elfinfo.open(testprograms['clang-x86'].objects[0]);
+        const elf = await elfinfo.open(testprograms['clang-x64'].objects[0]);
         const output = debug(elf.elf);
         expect(output).not.toBeNull();
         expect(output.length).toBeGreaterThan(0);
