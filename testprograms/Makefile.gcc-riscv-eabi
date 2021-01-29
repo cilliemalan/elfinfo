@@ -1,4 +1,5 @@
 CC=riscv-none-embed-gcc
+OBJDUMP=riscv-none-embed-objdump
 PLATFORM=riscv-eabi
 CFLAGS+= --specs=nosys.specs -ffunction-sections -fdata-sections -Wno-psabi -march=rv32imafd
 CFLAGS+= -fno-exceptions -fno-rtti -fno-threadsafe-statics -fno-use-cxa-atexit

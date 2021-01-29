@@ -1,4 +1,5 @@
 CC=clang
+OBJDUMP=objdump
 PLATFORM=clang-x64
 CFLAGS+= -fPIE
 

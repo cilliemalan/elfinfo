@@ -1,0 +1,6 @@
+CC=aarch64-none-linux-gnu-g++
+OBJDUMP=aarch64-none-linux-gnu-objdump
+PLATFORM=gcc-aarch64
+CFLAGS+= -fPIE
+
+include Makefile.common

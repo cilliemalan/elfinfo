@@ -25,4 +25,5 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(DEPS)
 
 $(OUTPUT): $(OBJS)
 	mkdir -p $(@D)
-	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) -Wl,-Map=$@.map
+	$(OBJDUMP) -h -S $@ > $@.lst

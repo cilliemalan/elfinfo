@@ -1,4 +1,5 @@
 CC=arm-none-eabi-gcc
+OBJDUMP=arm-none-eabi-objdump
 PLATFORM=arm-eabi
 CFLAGS+= -mcpu=cortex-m3 --specs=nosys.specs -ffunction-sections -fdata-sections -Wno-psabi -mthumb -mno-thumb-interwork
 CFLAGS+= -fno-exceptions -fno-rtti -fno-threadsafe-statics -fno-use-cxa-atexit -std=gnu++14

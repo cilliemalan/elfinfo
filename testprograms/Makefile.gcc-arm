@@ -1,0 +1,6 @@
+CC=arm-none-linux-gnueabihf-g++
+OBJDUMP=arm-none-linux-gnueabihf-objdump
+PLATFORM=gcc-arm
+CFLAGS+= -fPIE
+
+include Makefile.common

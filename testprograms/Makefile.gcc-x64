@@ -1,4 +1,5 @@
 CC=g++
+OBJDUMP=objdump
 PLATFORM=gcc-x64
 CFLAGS+= -fPIE
 
