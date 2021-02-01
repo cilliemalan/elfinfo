@@ -52,14 +52,15 @@ async function readStringSection(fh: Reader, offset: number | BigInt, size: numb
     return strings;
 }
 
-async function readSymbolsSection(fh: Reader, offset: number | BigInt, size: number | BigInt, entsize: number | BigInt, bigEndian: boolean, bits: number): Promise<ELFSymbol[]> {
+async function readSymbolsSection(fh: Reader, offset: number, size: number,
+    entsize: number, bigEndian: boolean, bits: number): Promise<ELFSymbol[]> {
 
+    const fhsize = await fh.size();
     const num = divide(size, entsize);
     let ix = 0;
     const symbols: ELFSymbol[] = [];
     for (let i = 0; i < num; i++) {
-        // TODO: warn if entsize or offset + i*entsize is too big. there will probably be other problems in that case though
-        const view = await fh.view(Number(entsize), Number(offset) + i * Number(entsize));
+        const view = await fh.view(entsize, offset + i * entsize);
         const readUint8 = view.getUint8.bind(view);
         const readUInt16 = (ix: number) => view.getUint16(ix, !bigEndian);
         const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);
@@ -81,7 +82,7 @@ async function readSymbolsSection(fh: Reader, offset: number | BigInt, size: num
             other = readUint8(ix); ix += 1;
             shndx = readUInt16(ix); ix += 2;
             value = readUInt64(ix); ix += 8;
-            size = readUInt64(ix); ix += 8;
+            size = Number(readUInt64(ix)); ix += 8;
         }
         const type = info & 0xf;
         const binding = info >> 4;
@@ -118,7 +119,8 @@ function fillInSymbolNames(symbols: ELFSymbol[], strings?: { [index: number]: st
 
 export async function readSectionHeaderEntries(fh: Reader,
     sh_off: number | BigInt, sh_entsize: number, sh_num: number,
-    bits: number, bigEndian: boolean, eSHStrNdx: number): Promise<ELFSectionHeaderEntry[]> {
+    bits: number, bigEndian: boolean, eSHStrNdx: number,
+    readSymbolData: boolean): Promise<ELFSectionHeaderEntry[]> {
 
     if (sh_num == 0) {
         return [];
@@ -194,7 +196,8 @@ export async function readSectionHeaderEntries(fh: Reader,
 
         if (size < MAX_SECTION_LOAD_SIZE &&
             (type === SectionHeaderEntryType.SymTab || type === SectionHeaderEntryType.DynSym)) {
-            section.symbols = await readSymbolsSection(fh, offset, size, entsize, bigEndian, bits);
+            section.symbols = await readSymbolsSection(fh, Number(offset), Number(size), Number(entsize),
+                bigEndian, bits);
             if (link >= 0 && link < result.length) {
                 fillInSymbolNames(section.symbols, result[link].strings);
             }

@@ -1,10 +1,59 @@
 import { abiToString, isaToString, objectTypeToString, elfFlagsToString } from "./strings";
-import { ELF, ABI, ISA, ObjectType, ELFOpenResult } from "./types";
+import { ELF, ABI, ISA, ObjectType, ELFOpenResult, SymbolType } from "./types";
 import { readProgramHeaderEntries } from "./segments";
 import { readSectionHeaderEntries } from "./sections";
 import { Reader } from "./reader";
+import { virtualAddressToFileOffset } from "./elf";
+import { add } from "./biginthelpers";
 
-export async function readElf(reader: Reader): Promise<ELFOpenResult> {
+
+/** Options for reading an ELF file. */
+export interface OpenOptions {
+    /** When true, the data for symbols will also be read */
+    readSymbolData: boolean
+};
+
+async function loadSymbols(elf: ELF, reader: Reader) {
+    const elftype = elf.type;
+    if (elftype === ObjectType.Executable || elftype === ObjectType.Relocatable || elftype === ObjectType.Shared) {
+        const readerSize = await reader.size();
+        for (const section of elf.sections) {
+            if (section.symbols) {
+                for (const symbol of section.symbols) {
+                    if (symbol.size && (symbol.type == SymbolType.Object || symbol.type == SymbolType.Function)) {
+
+                        const size = Number(symbol.size);
+                        let fileOffset: BigInt | number;
+                        if (elftype === ObjectType.Relocatable) {
+                            if (symbol.shndx < elf.sections.length) {
+                                // offset is from start of section
+                                const vma = add(symbol.value, elf.sections[Number(symbol.shndx)].addr);
+                                fileOffset = virtualAddressToFileOffset(elf, vma) ?? -1;
+                            } else {
+                                // the symbol is invalid or not understood
+                                fileOffset = -1;
+                            }
+                        } else {
+                            // the value is the virtual address
+                            fileOffset = virtualAddressToFileOffset(elf, symbol.value) ?? -1;
+                        }
+
+                        fileOffset = Number(fileOffset);
+                        if (fileOffset > 0) {
+                            if (fileOffset + size <= readerSize) {
+                                symbol.data = await reader.read(Number(symbol.size), fileOffset);
+                            } else {
+                                debugger;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+export async function readElf(reader: Reader, options: OpenOptions): Promise<ELFOpenResult> {
 
     let success = false;
     const errors = [];
@@ -103,6 +152,16 @@ export async function readElf(reader: Reader): Promise<ELFOpenResult> {
                     const type = eType as ObjectType;
                     const isa = eMachine as ISA;
 
+                    const segments = await readProgramHeaderEntries(
+                        reader, ePHOff,
+                        ePHEntSize, ePHNum,
+                        bits, bigEndian);
+                    const sections = await readSectionHeaderEntries(
+                        reader, eSHOff,
+                        eSHEntSize, eSHNum,
+                        bits, bigEndian, eSHStrNdx,
+                        options.readSymbolData);
+
                     elf = {
                         path: reader.path,
                         class: eiClass,
@@ -129,8 +188,12 @@ export async function readElf(reader: Reader): Promise<ELFOpenResult> {
                         sectionHeaderEntrySize: eSHEntSize,
                         numSectionHeaderEntries: eSHNum,
                         shstrIndex: eSHStrNdx,
-                        segments: await readProgramHeaderEntries(reader, ePHOff, ePHEntSize, ePHNum, bits, bigEndian),
-                        sections: await readSectionHeaderEntries(reader, eSHOff, eSHEntSize, eSHNum, bits, bigEndian, eSHStrNdx),
+                        segments,
+                        sections,
+                    }
+
+                    if (options.readSymbolData) {
+                        await loadSymbols(elf, reader);
                     }
                     success = true;
                 }

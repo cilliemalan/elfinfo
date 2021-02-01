@@ -337,4 +337,6 @@ export interface ELFSymbol {
     shndx: number;
     /** A human readable description of shndx. */
     shndxDescription: string;
+    /** The data for the symbol, if any and if it was specified to be loaded */
+    data?: Uint8Array;
 }
