@@ -333,10 +333,12 @@ export interface ELFSymbol {
     visibility: SymbolVisibility;
     /** A human readable description of visibility. */
     visibilityDescription: string;
-    /** SHNDX for this symbol. */
+    /** Section index for this symbol.
+     * @summary This is the index of the section for this symbol. There
+     * are also special values such as 0xfff1 for an absolute index symbol
+     * in a relocatable ELF file (object file).
+     */
     shndx: number;
-    /** A human readable description of shndx. */
-    shndxDescription: string;
     
     /** The calculated virtaul address for the symbol, if possible */
     virtualAddress?: number | BigInt;

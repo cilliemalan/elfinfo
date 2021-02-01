@@ -3,7 +3,7 @@ import {
 } from "./types";
 import {
     symbolBindingToString, symbolTypeToString, symbolVisibilityToString,
-    sectionFlagsToString, shndxToString, sectionHeaderEntryTypeToString
+    sectionFlagsToString, sectionHeaderEntryTypeToString
 } from "./strings";
 import { Reader } from './reader';
 import { add, subtract, divide, toNumberSafe } from './biginthelpers';
@@ -101,8 +101,7 @@ async function readSymbolsSection(fh: Reader, offset: number, size: number,
             visibility,
             typeDescription: symbolTypeToString(type),
             bindingDescription: symbolBindingToString(binding),
-            visibilityDescription: symbolVisibilityToString(visibility),
-            shndxDescription: shndxToString(shndx)
+            visibilityDescription: symbolVisibilityToString(visibility)
         };
     }
 

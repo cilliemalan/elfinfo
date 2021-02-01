@@ -136,10 +136,3 @@ export function symbolBindingToString(binding: SymbolBinding) {
 export function symbolVisibilityToString(visibility: SymbolVisibility) {
     return SymbolVisibility[visibility] || visibility.toString();
 }
-
-export function shndxToString(shndx: number) {
-    if (shndx === 0) return 'Undefined';
-    else if (shndx === 0xfffffff1) return 'Absolute';
-    else if (shndx === 0xfffffff2) return 'Common';
-    else return shndx.toString();
-}
