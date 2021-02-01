@@ -15,7 +15,7 @@ export function add(a: number | BigInt, b: number | BigInt): number | BigInt {
     } else if (typeof a == 'number' && typeof b == 'number') {
         return a + b;
     } else {
-        return BigInt(a) - BigInt(b);
+        return BigInt(a) + BigInt(b);
     }
 }
 
