@@ -14,6 +14,9 @@ category("Basic Operations", () => {
                 assert(elf.success === true);
                 assert(elf.errors.length === 0);
                 assert(elf.warnings.length === 0);
+                assert(elf.elf);
+                assert(elf.elf.sections.length > 0);
+                assert(elf.elf.segments.length > 0);
             });
 
             test(`${abi} objects should open without problems`, async () => {
@@ -24,8 +27,9 @@ category("Basic Operations", () => {
                     assert(elf.success === true);
                     assert(elf.errors.length === 0);
                     assert(elf.warnings.length === 0);
+                    assert(elf.elf);
+                    assert(elf.elf.sections.length > 0);
                 }
             });
         });
-
 });
