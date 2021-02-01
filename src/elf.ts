@@ -1,5 +1,5 @@
 import { ELF, ABI, ISA, ObjectType, ELFProgramHeaderEntry, ELFSectionHeaderEntry, ELFSymbol } from "./types";
-import { add, subtract } from './biginthelpers';
+import { add, subtract, toNumberSafe } from './biginthelpers';
 
 function filterSymbolsByVirtualAddress(elf: ELF, start: number | BigInt, size: number | BigInt): ELFSymbol[] {
 
@@ -9,7 +9,7 @@ function filterSymbolsByVirtualAddress(elf: ELF, start: number | BigInt, size: n
     for (const section of elf.sections) {
         if (section.symbols) {
             for (const symbol of section.symbols) {
-                if (symbol.value >= start && symbol.value < end) {
+                if (symbol.virtualAddress && symbol.virtualAddress >= start && symbol.virtualAddress < end) {
                     symbols.push(symbol);
                 }
             }
@@ -75,7 +75,9 @@ export function getSectionsInSegment(elf: ELF, segmentOrIndex: ELFProgramHeaderE
 export function getSectionsForSymbol(elf: ELF, symbol: ELFSymbol): ELFSectionHeaderEntry[] {
     const sections = [];
     for (const section of elf.sections) {
-        if (symbol.value >= section.addr && symbol.value <= add(section.addr, section.size)) {
+        if (symbol.virtualAddress && 
+            symbol.virtualAddress >= section.addr && 
+            symbol.virtualAddress <= add(section.addr, section.size)) {
             sections.push(section);
         }
     }
@@ -98,7 +100,9 @@ export function getSectionForSymbol(elf: ELF, symbol: ELFSymbol): ELFSectionHead
 export function getSegmentsForSymbol(elf: ELF, symbol: ELFSymbol): ELFProgramHeaderEntry[] {
     const segments = [];
     for (const segment of elf.segments) {
-        if (symbol.value >= segment.vaddr && symbol.value <= add(segment.vaddr, segment.memsz)) {
+        if (symbol.virtualAddress && 
+            symbol.virtualAddress >= segment.vaddr && 
+            symbol.virtualAddress <= add(segment.vaddr, segment.memsz)) {
             segments.push(segment);
         }
     }
@@ -124,11 +128,13 @@ export function getSymbolsAtVirtualMemoryLocation(elf: ELF, location: number | B
         if (section.symbols) {
             for (const symbol of section.symbols) {
                 if (symbol.size == 0) {
-                    if (symbol.value == location) {
+                    if (symbol.virtualAddress === location) {
                         symbols.push(symbol);
                     }
                 } else {
-                    if (location >= symbol.value && location < add(symbol.value, symbol.size)) {
+                    if (symbol.virtualAddress && 
+                        location >= symbol.virtualAddress && 
+                        location < add(symbol.virtualAddress, symbol.size)) {
                         symbols.push(symbol);
                     }
                 }
@@ -229,12 +235,12 @@ export function virtualAddressToPhysical(elf: ELF, location: number | BigInt): n
  * @param {number | BigInt} location The virtual memory address.
  * @returns {number | BigInt} the file offset.
 */
-export function virtualAddressToFileOffset(elf: ELF, location: number | BigInt): number | BigInt | undefined {
+export function virtualAddressToFileOffset(elf: ELF, location: number | BigInt): number | undefined {
     for (const segment of elf.segments) {
         if (location >= segment.vaddr && location < add(segment.vaddr, segment.memsz)) {
-            const offset = subtract(location, segment.vaddr);
+            const offset = toNumberSafe(subtract(location, segment.vaddr));
             if (offset < segment.filesz) {
-                return add(segment.offset, offset);
+                return segment.offset + offset;
             }
         }
     }
@@ -261,11 +267,11 @@ export function physicalAddressToVirtual(elf: ELF, location: number | BigInt): n
  * @param {number | BigInt} location The physical memory address.
  * @returns {number | BigInt} the file offset.
 */
-export function physicalAddressToFileOffset(elf: ELF, location: number | BigInt): number | BigInt | undefined {
+export function physicalAddressToFileOffset(elf: ELF, location: number | BigInt): number | undefined {
     for (const segment of elf.segments) {
         if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
-            const offset = subtract(location, segment.paddr);
-            return add(segment.offset, offset);
+            const offset = toNumberSafe(subtract(location, segment.paddr));
+            return segment.offset + offset;
         }
     }
 
@@ -273,10 +279,10 @@ export function physicalAddressToFileOffset(elf: ELF, location: number | BigInt)
 }
 
 /** translate a file offset to a physical address, if possible. 
- * @param {number | BigInt} location The file offset.
+ * @param {number} location The file offset.
  * @returns {number | BigInt} the physical address.
 */
-export function fileOffsetToPhysicalAddress(elf: ELF, location: number | BigInt): number | BigInt | undefined {
+export function fileOffsetToPhysicalAddress(elf: ELF, location: number): number | BigInt | undefined {
     for (const segment of elf.segments) {
         if (location >= segment.offset && location < add(segment.offset, segment.filesz)) {
             const offset = subtract(location, segment.offset);
@@ -288,10 +294,10 @@ export function fileOffsetToPhysicalAddress(elf: ELF, location: number | BigInt)
 }
 
 /** translate a file offset to a virtual address, if possible. 
- * @param {number | BigInt} location The file offset.
+ * @param {number} location The file offset.
  * @returns {number | BigInt} the virtual address.
 */
-export function fileOffsetToVirtualAddress(elf: ELF, location: number | BigInt): number | BigInt | undefined {
+export function fileOffsetToVirtualAddress(elf: ELF, location: number): number | BigInt | undefined {
     for (const segment of elf.segments) {
         if (location >= segment.offset && location < add(segment.offset, segment.filesz)) {
             const offset = subtract(location, segment.offset);
@@ -353,30 +359,4 @@ export function getSymbolsByName(elf: ELF, symbolName: string): ELFSymbol[] {
         }
     }
     return matches;
-}
-
-/** Get the virtual address for a symbol. This is just symbol.value. 
- * @param {Symbol} symbol The symbol.
- * @returns {number | BigInt} The virtual address for the symbol.
-*/
-export function getSymbolVirtualAddress(elf: ELF, symbol: ELFSymbol): number | BigInt {
-    return symbol.value;
-}
-
-/** Get the physical address for a symbol, if possible. 
- * @param {Symbol} symbol The symbol.
- * @returns {number | BigInt} The physical address for the symbol.
- * 
-*/
-export function getSymbolPhysicalAddress(elf: ELF, symbol: ELFSymbol): number | BigInt | undefined {
-    return virtualAddressToPhysical(elf, symbol.value);
-}
-
-/** Get the offset of a symbol in the ELF file, if possible. 
- * @param {Symbol} symbol The symbol.
- * @returns {number | BigInt} The file offset for the symbol.
- * 
-*/
-export function getSymbolFileOffset(elf: ELF, symbol: ELFSymbol): number | BigInt | undefined {
-    return virtualAddressToFileOffset(elf, symbol.value);
 }

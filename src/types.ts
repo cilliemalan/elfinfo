@@ -201,9 +201,9 @@ export interface ELF {
     /** The virtual address of the entypoint. */
     entryPoint: number | BigInt;
     /** Offset in the ELF file of the first program header entry. */
-    programHeaderOffset: number | BigInt;
+    programHeaderOffset: number;
     /** Offset in the ELF file of the first section header entyr. */
-    sectionHeaderOffset: number | BigInt;
+    sectionHeaderOffset: number;
     /** The size of one program header entry. */
     programHeaderEntrySize: number;
     /** The total number of program header entries in the file. */
@@ -250,17 +250,17 @@ export interface ELFProgramHeaderEntry {
     /** A human readable description of flags. */
     flagsDescription: string;
     /** The file offset for data for this segment. */
-    offset: number | BigInt;
+    offset: number;
     /** The virtual address for this segment. Also called the VMA address. */
     vaddr: number | BigInt;
     /** The physical address for this segment. Also called the LMA or load address. */
     paddr: number | BigInt;
     /** The size of this segment in the ELF file */
-    filesz: number | BigInt;
+    filesz: number ;
     /** The size of this segment in (virtual) memory. */
-    memsz: number | BigInt;
+    memsz: number;
     /** The alignment of this segment (the segment must be loaded to an address in multiples of this). */
-    align: number | BigInt;
+    align: number;
 }
 
 /** 
@@ -278,15 +278,15 @@ export interface ELFSectionHeaderEntry {
     /** A human readable description of type. */
     typeDescription: string;
     /** The flags for this section. */
-    flags: number | BigInt;
+    flags: number;
     /** A human readable description of flags. */
     flagsDescription: string;
     /** The (virtual) address of this section. */
     addr: number | BigInt;
     /** The offset of this section. */
-    offset: number | BigInt;
+    offset: number;
     /** The size of this section. */
-    size: number | BigInt;
+    size: number;
     /** A section linked to this section. For example for a symbol section the 
      * linked section is a string table section providing names for symbols. 
      */
@@ -294,11 +294,11 @@ export interface ELFSectionHeaderEntry {
     /** Section type specific info for this section. */
     info: number;
     /** The alignment requirement of this section. */
-    addralign: number | BigInt;
+    addralign: number;
     /** The size of each entity in this section. For example, if this is a symbol
      * table section this is the size of a symbol entry.
      */
-    entsize: number | BigInt;
+    entsize: number;
     /** The strings parsed from this section in the case of a string table section.  */
     strings?: { [index: number]: string };
     /** The symbols parsed from this section in the case of a symbol table section. */
@@ -313,10 +313,10 @@ export interface ELFSymbol {
     nameix: number;
     /** The name as copied from the string table. */
     name: string;
-    /** The value (address) of this symbol in (virtual) memory, if applicable. */
+    /** The value of this symbol. The interpretation of the value is dependent on a few things but is generally an offset or address. */
     value: number | BigInt;
     /** The size of this symbol, if applicable. */
-    size: number | BigInt;
+    size: number;
     /** Symbol type specific information. */
     info: number;
     /** The type of this symbol */
@@ -337,6 +337,9 @@ export interface ELFSymbol {
     shndx: number;
     /** A human readable description of shndx. */
     shndxDescription: string;
+    
+    /** The calculated virtaul address for the symbol, if possible */
+    virtualAddress?: number | BigInt;
     /** The data for the symbol, if any and if it was specified to be loaded */
     data?: Uint8Array;
 }

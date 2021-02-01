@@ -6,7 +6,7 @@ import {
     sectionFlagsToString, shndxToString, sectionHeaderEntryTypeToString
 } from "./strings";
 import { Reader } from './reader';
-import { add, subtract, divide } from './biginthelpers';
+import { add, subtract, divide, toNumberSafe } from './biginthelpers';
 import { decode } from './encoding';
 
 const MAX_SECTION_LOAD_SIZE = 0x1000000;
@@ -149,14 +149,14 @@ export async function readSectionHeaderEntries(fh: Reader,
             addralign = readUInt32(ix); ix += 4;
             entsize = readUInt32(ix); ix += 4;
         } else {
-            flags = readUInt64(ix); ix += 8;
+            flags = toNumberSafe(readUInt64(ix)); ix += 8;
             addr = readUInt64(ix); ix += 8;
-            offset = readUInt64(ix); ix += 8;
-            size = readUInt64(ix); ix += 8;
+            offset = toNumberSafe(readUInt64(ix)); ix += 8;
+            size = toNumberSafe(readUInt64(ix)); ix += 8;
             link = readUInt32(ix); ix += 4;
             info = readUInt32(ix); ix += 4;
-            addralign = readUInt64(ix); ix += 8;
-            entsize = readUInt64(ix); ix += 8;
+            addralign = toNumberSafe(readUInt64(ix)); ix += 8;
+            entsize = toNumberSafe(readUInt64(ix)); ix += 8;
         }
 
         const section: ELFSectionHeaderEntry = {

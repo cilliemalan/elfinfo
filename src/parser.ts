@@ -4,7 +4,8 @@ import { readProgramHeaderEntries } from "./segments";
 import { readSectionHeaderEntries } from "./sections";
 import { Reader } from "./reader";
 import { virtualAddressToFileOffset } from "./elf";
-import { add } from "./biginthelpers";
+import { add, toNumberSafe } from "./biginthelpers";
+import { read } from "fs";
 
 
 /** Options for reading an ELF file. */
@@ -13,35 +14,33 @@ export interface OpenOptions {
     readSymbolData: boolean
 };
 
-async function loadSymbols(elf: ELF, reader: Reader) {
+async function updateSymbolAddressesAndLoadSymbols(elf: ELF, reader: Reader, loadSymbols: boolean) {
+    const readerSize = await reader.size();
     const elftype = elf.type;
     if (elftype === ObjectType.Executable || elftype === ObjectType.Relocatable || elftype === ObjectType.Shared) {
-        const readerSize = await reader.size();
         for (const section of elf.sections) {
             if (section.symbols) {
                 for (const symbol of section.symbols) {
-                    if (symbol.size && (symbol.type == SymbolType.Object || symbol.type == SymbolType.Function)) {
-
-                        const size = Number(symbol.size);
-                        let fileOffset: BigInt | number;
-                        if (elftype === ObjectType.Relocatable) {
-                            if (symbol.shndx < elf.sections.length) {
-                                // offset is from start of section
-                                const vma = add(symbol.value, elf.sections[Number(symbol.shndx)].addr);
-                                fileOffset = virtualAddressToFileOffset(elf, vma) ?? -1;
-                            } else {
-                                // the symbol is invalid or not understood
-                                fileOffset = -1;
-                            }
-                        } else {
-                            // the value is the virtual address
-                            fileOffset = virtualAddressToFileOffset(elf, symbol.value) ?? -1;
+                    if (elftype === ObjectType.Relocatable) {
+                        if (symbol.shndx < elf.sections.length) {
+                            // offset is from start of section
+                            symbol.virtualAddress = add(symbol.value, elf.sections[symbol.shndx].addr);
+                        } else if (symbol.shndx == 0xfff1) {
+                            // SHN_ABS
+                            symbol.virtualAddress = symbol.value;
                         }
+                    } else {
+                        // the value is the virtual address
+                        symbol.virtualAddress = symbol.value;
+                    }
 
-                        fileOffset = Number(fileOffset);
-                        if (fileOffset > 0) {
-                            if (fileOffset + size <= readerSize) {
-                                symbol.data = await reader.read(Number(symbol.size), fileOffset);
+                    if (loadSymbols && symbol.virtualAddress &&
+                        (symbol.type === SymbolType.Function || symbol.type === SymbolType.Object) &&
+                        symbol.size) {
+                        const fileOffset = virtualAddressToFileOffset(elf, symbol.value);
+                        if (fileOffset) {
+                            if (fileOffset + symbol.size <= readerSize) {
+                                symbol.data = await reader.read(symbol.size, fileOffset);
                             } else {
                                 debugger;
                             }
@@ -115,8 +114,8 @@ export async function readElf(reader: Reader, options: OpenOptions): Promise<ELF
                     eSHOff = readUInt32(ix); ix += 4;
                 } else {
                     eEntry = readUInt64(ix); ix += 8;
-                    ePHOff = readUInt64(ix); ix += 8;
-                    eSHOff = readUInt64(ix); ix += 8;
+                    ePHOff = toNumberSafe(readUInt64(ix)); ix += 8;
+                    eSHOff = toNumberSafe(readUInt64(ix)); ix += 8;
                 }
                 const eFlags = readUInt32(ix); ix += 4;
                 const eHSize = readUInt16(ix); ix += 2;
@@ -192,9 +191,7 @@ export async function readElf(reader: Reader, options: OpenOptions): Promise<ELF
                         sections,
                     }
 
-                    if (options.readSymbolData) {
-                        await loadSymbols(elf, reader);
-                    }
+                    updateSymbolAddressesAndLoadSymbols(elf, reader, options.readSymbolData);
                     success = true;
                 }
             }
