@@ -1,25 +1,32 @@
 #!/usr/bin/env node
 import fs from 'fs/promises';
 import path from 'path';
+import { AsyncLocalStorage } from 'async_hooks';
 
 const tests: { name: string, fn: () => any }[] = [];
 
-let currentCategory: string | undefined;
+interface Category {
+    name: string;
+    prev?: Category;
+}
 
-export function category(name: string, stuff: () => void) {
-    const oldCategory = currentCategory;
-    if (currentCategory) {
-        currentCategory = `${currentCategory} - ${name}`;
-    } else {
-        currentCategory = name;
+const currentCategoryStorage = new AsyncLocalStorage<Category | undefined>();
+
+export function category(name: string, stuff: () => void | Promise<void>) {
+
+    const prev = currentCategoryStorage.getStore();
+
+    if (prev) {
+        name = `${prev.name} - ${name}`;
     }
-    stuff();
-    currentCategory = oldCategory;
+
+    currentCategoryStorage.run({ name, prev }, stuff);
 }
 
 export function test(name: string, fn: () => any) {
-    if (currentCategory) {
-        name = `${currentCategory} - ${name}`;
+    const category = currentCategoryStorage.getStore();
+    if (category) {
+        name = `${category.name} - ${name}`;
     }
     tests.push({ name, fn });
 }
