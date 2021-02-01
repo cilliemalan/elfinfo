@@ -1,6 +1,5 @@
-node_modules/
-coverage/
 dist/
+node_modules/
+.buildcache
 testprograms/bin/
 testprograms/obj/
-*.tsbak

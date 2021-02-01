@@ -1,5 +1,3 @@
-import { ELF } from './elf';
-
 /**
  * The type of Instruction Set Architecture.
  */
@@ -164,6 +162,64 @@ export enum SymbolVisibility {
     Protected = 3
 }
 
+export interface ELF {
+    /** The path of the file. Only set when parse was called with a path. */
+    path?: string;
+    /** The class (or bit-ness) of the ELF file. There are two classes of ELF files: 32-bit and 64-bit. */
+    class: number;
+    /** A human readable description of class.  */
+    classDescription: string;
+    /** The endianness of the data in the ELF file. */
+    data: number;
+    /** A human readable description of data. */
+    dataDescription: string;
+    /** The version of the ELF file. There is currently only one version. */
+    version: number;
+    /** Numberical number of bits with respect to class. Either 32 or 64. */
+    bits: number;
+    /** The ABI (Application Binary Interface) of this ELF file. This is typically not used and set to SystemV.  */
+    abi: ABI;
+    /** A human readable description of abi. */
+    abiDescription: string;
+    /** The ABI version. This is ABI specific data but is generally not used. */
+    abiVersion: number;
+    /** The type of ELF file this is (e.g. executable, object file, shared library). */
+    type: ObjectType;
+    /** A human readable description of type. */
+    typeDescription: string;
+    /** The ISA (Instruction Set Architecture) for this ELF file. This corresponds to the type of processor this ELF file is for
+     * and does not necessarily include the entire specification of the ISA. isaVersion and flags may contain more information. */
+    isa: ISA;
+    /** A human readable description of isa. */
+    isaDescription: string;
+    /** The version of ISA used. The interpretation of version is ISA specific. */
+    isaVersion: number;
+    /** Flags for the ISA used. The interpretation is ISA specific. */
+    flags: number;
+    /** A human readable description of flags. */
+    flagsDescription: string;
+    /** The virtual address of the entypoint. */
+    entryPoint: number | BigInt;
+    /** Offset in the ELF file of the first program header entry. */
+    programHeaderOffset: number | BigInt;
+    /** Offset in the ELF file of the first section header entyr. */
+    sectionHeaderOffset: number | BigInt;
+    /** The size of one program header entry. */
+    programHeaderEntrySize: number;
+    /** The total number of program header entries in the file. */
+    numProgramHeaderEntries: number;
+    /** The size of one section header entry. */
+    sectionHeaderEntrySize: number;
+    /** The total number of program section entries in the file. */
+    numSectionHeaderEntries: number;
+    /** The section index for the string table (if any). */
+    shstrIndex: number;
+    /** The segments for the ELF file, parsed from program header entries. */
+    segments: ELFProgramHeaderEntry[];
+    /** The sections for the ELF file, parsed from section header entries. */
+    sections: ELFSectionHeaderEntry[];
+}
+
 /**
  * The result of parsing an ELF file. The goods
  * are in the elf property.
@@ -176,7 +232,7 @@ export interface ELFOpenResult {
     /** Any warnings that occurred during parsing. */
     warnings: string[];
     /** The information parsed from the ELF file. */
-    elf: ELF;
+    elf?: ELF;
 }
 
 /**

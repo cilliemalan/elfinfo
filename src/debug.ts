@@ -1,15 +1,19 @@
 import { SectionHeaderEntryType, ELFOpenResult } from './types';
-import { ELF } from './elf';
+import { ELF } from './types';
 
-function toHex(n: number | BigInt, padamount: number = 0) {
-    const hexchars = n.toString(16);
-    if (padamount == 0) {
-        padamount = typeof n == 'bigint' ? 8 :
-            hexchars.length <= 2 ? 2 :
-                hexchars.length <= 4 ? 4 :
-                    8;
+function toHex(n: number | BigInt | undefined, padamount: number = 0) {
+    if (n) {
+        const hexchars = n.toString(16);
+        if (padamount == 0) {
+            padamount = typeof n == 'bigint' ? 8 :
+                hexchars.length <= 2 ? 2 :
+                    hexchars.length <= 4 ? 4 :
+                        8;
+        }
+        return `0x${hexchars.padStart(padamount, '0')}`;
+    } else {
+        return '<undefined>';
     }
-    return `0x${hexchars.padStart(padamount, '0')}`;
 }
 
 /**
@@ -17,15 +21,13 @@ function toHex(n: number | BigInt, padamount: number = 0) {
  * @param {ELF | ELFOpenResult} file the ELF file data to print debug info for.
  * @returns {string} Debug outpt.
  */
-export function debug(elf: ELF | ELFOpenResult): string {
+export function debug(elf_: ELF | ELFOpenResult): string {
     let result = "";
 
-    if (!(elf instanceof ELF)) {
-        elf = elf.elf;
-    }
+    const elf: ELF | undefined = (elf_ as any).elf ? (elf_ as ELFOpenResult).elf : (elf_ as ELF);
 
     if (elf) {
-        const addrpad = elf.bits / 4;
+        const addrpad = elf.bits ? elf.bits / 4 : 8;
         result += `Path: ${elf.path}\n`;
         result += `Class:                             ${elf.classDescription} (${elf.class})\n`;
         result += `Bits:                              ${elf.bits} bits\n`;
@@ -112,7 +114,7 @@ export function debug(elf: ELF | ELFOpenResult): string {
         }
 
     } else {
-        result += "<null>";
+        result += "<undefined>";
     }
 
 

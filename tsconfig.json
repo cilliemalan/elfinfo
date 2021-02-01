@@ -1,20 +1,30 @@
 {
+  /* Visit https://aka.ms/tsconfig.json to read more about this file */
   "compilerOptions": {
+    "incremental": true,
+    "tsBuildInfoFile": "./.buildcache",
+    "target": "es2017",
     "module": "commonjs",
-    "esModuleInterop": true,
-    "declaration": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "ES2018",
-    "noImplicitAny": true,
-    "moduleResolution": "node",
-    "sourceMap": true,
-    "outDir": "dist/node",
-    "baseUrl": ".",
     "lib": [
-      "es2019"
-    ]
+      "es2020"
+    ],
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "strict": true,
+    "noImplicitAny": true,
+    "alwaysStrict": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src/**/*"
-  ]
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
+  "typeAcquisition": {
+    "enable": false
+  }
 }

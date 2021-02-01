@@ -7,29 +7,11 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Debug Tests",
-            "cwd": "${workspaceFolder}",
-            "args": [
-                "--inspect-brk",
-                "${workspaceRoot}/node_modules/.bin/jest",
-                "--runInBand",
-                "--config",
-                "${workspaceRoot}/jest.config.js",
-                "--detectOpenHandles"
-            ],
-            "windows": {
-                "args": [
-                    "--inspect-brk",
-                    "${workspaceRoot}/node_modules/jest/bin/jest.js",
-                    "--runInBand",
-                    "--config",
-                    "${workspaceRoot}/jest.config.js",
-                    "--detectOpenHandles"
-                ],
-            },
-            "skipFiles": [
-                "<node_internals>/**"
-            ]
+            "name": "Launch Tests",
+            "skipFiles": [ "<node_internals>/**" ],
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": [ "${workspaceFolder}/dist/**/*.js" ],
+            "program": "${workspaceFolder}/dist/tests/index.js",
         }
     ]
 }

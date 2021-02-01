@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import {
     ELFSymbol, ELFSectionHeaderEntry, SectionHeaderEntryType
 } from "./types";
@@ -8,6 +7,7 @@ import {
 } from "./strings";
 import { Reader } from './reader';
 import { add, subtract, divide } from './biginthelpers';
+import { decode } from './encoding';
 
 const MAX_SECTION_LOAD_SIZE = 0x1000000;
 
@@ -34,16 +34,6 @@ function getString(strings: { [index: number]: string; }, index: number) {
     return str;
 }
 
-const decoder = TextDecoder ? new TextDecoder() : null;
-function stringRead(arr: Uint8Array, ix: number, len: number) {
-    if (decoder) {
-        return decoder.decode(arr.subarray(ix, ix + len));
-    } else {
-        // TODO: will fail on large strings
-        String.fromCharCode.apply(null, arr.subarray(ix, ix + len));
-    }
-}
-
 async function readStringSection(fh: Reader, offset: number | BigInt, size: number | BigInt): Promise<{ [index: number]: string }> {
     const tmp = await fh.read(Number(size), Number(offset));
     let ix = 0;
@@ -54,7 +44,7 @@ async function readStringSection(fh: Reader, offset: number | BigInt, size: numb
         if (tmp[i] == 0) {
             const slen = i - ix;
             if (slen > 0) {
-                strings[ix] = stringRead(tmp, ix, slen);
+                strings[ix] = decode(tmp, ix, slen);
             }
             ix = i + 1;
         }
@@ -69,7 +59,7 @@ async function readSymbolsSection(fh: Reader, offset: number | BigInt, size: num
     const symbols: ELFSymbol[] = [];
     for (let i = 0; i < num; i++) {
         // TODO: warn if entsize or offset + i*entsize is too big. there will probably be other problems in that case though
-        const view = await fh.view(Number(entsize), Number(offset) +i * Number(entsize));
+        const view = await fh.view(Number(entsize), Number(offset) + i * Number(entsize));
         const readUint8 = view.getUint8.bind(view);
         const readUInt16 = (ix: number) => view.getUint16(ix, !bigEndian);
         const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);

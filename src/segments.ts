@@ -15,8 +15,8 @@ export async function readProgramHeaderEntries(fh: Reader,
 
     for (let i = 0; i < ph_num; i++) {
         const view = await fh.view(ph_entsize, Number(ph_off) + i * Number(ph_entsize));
-        const readUInt32 = (ix:number) => view.getUint32(ix, !bigEndian);
-        const readUInt64 = (ix:number) => view.getBigUint64(ix, !bigEndian);
+        const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);
+        const readUInt64 = (ix: number) => view.getBigUint64(ix, !bigEndian);
         const type = readUInt32(0);
 
         let ix = 4;
