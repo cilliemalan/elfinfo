@@ -28,3 +28,22 @@ export function divide(a: number | BigInt, b: number | BigInt): number | BigInt 
         return BigInt(a) / BigInt(b);
     }
 }
+
+
+const tooBigInt = BigInt(1e51);
+export function toNumberSafe(a: number | BigInt, warnings?: string[]) : number {
+    if (typeof a === 'bigint') {
+        if (a > tooBigInt) {
+            if (warnings) {
+                warnings.push('BigInt Overflow');
+            } else {
+                throw new Error('BigInt Overflow');
+            }
+        } else {
+            return Number(a);
+        }
+    } else if (typeof a === 'number') {
+        return a;
+    }
+    throw new Error('Invalid Input for BigInt conversion');
+}
