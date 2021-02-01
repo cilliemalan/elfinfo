@@ -10,7 +10,7 @@ import {
     virtualAddressToPhysical
 } from "../src";
 import fs from 'fs';
-import { testprograms } from './testprograms';
+import { testPrograms } from './testprograms';
 import { category, test } from './';
 
 async function load(data: Uint8Array): Promise<ELF> {
@@ -25,8 +25,8 @@ async function load(data: Uint8Array): Promise<ELF> {
 
 category("Functions", () => {
 
-    const elfdata = testprograms['clang-x64'].program;
-    const armelfdata = testprograms['arm-eabi'].program;
+    const elfdata = testPrograms['clang-x64'].program;
+    const armelfdata = testPrograms['arm-eabi'].program;
 
     test(`getSymbols works`, async () => {
         const elf = await load(elfdata);

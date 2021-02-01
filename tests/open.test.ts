@@ -1,13 +1,13 @@
 import assert from 'assert';
 import * as elfinfo from "../src";
 import fs from "fs";
-import { testprograms } from './testprograms';
+import { testPrograms } from './testprograms';
 import { category, test } from './';
 
 category("Open types", () => {
 
-    const data = testprograms['clang-x64'].program;
-    const path = testprograms['clang-x64'].programPath;
+    const data = testPrograms['clang-x64'].program;
+    const path = testPrograms['clang-x64'].programPath;
 
     test(`should open a buffer without problems`, async () => {
         const fh = await fs.promises.open(path, 'r');
