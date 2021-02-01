@@ -28,6 +28,8 @@
   "scripts": {
     "build": "tsc",
     "test": "tsc && node dist/tests/",
+    "prepare": "tsc",
+    "prepublishOnly": "tsc && node dist/tests/",
     "gendocs": "jsdoc2md --files src/*.ts --template README.template.md --configure ./jsdoc2md.json  > README.md"
   },
   "devDependencies": {
