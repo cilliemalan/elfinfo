@@ -215,9 +215,9 @@ export interface ELF {
     /** The section index for the string table (if any). */
     shstrIndex: number;
     /** The segments for the ELF file, parsed from program header entries. */
-    segments: ELFProgramHeaderEntry[];
+    segments: ELFSegment[];
     /** The sections for the ELF file, parsed from section header entries. */
-    sections: ELFSectionHeaderEntry[];
+    sections: ELFSection[];
 }
 
 /**
@@ -238,7 +238,7 @@ export interface ELFOpenResult {
 /**
  * A segment, parsed from the ELF file program header entries. 
  */
-export interface ELFProgramHeaderEntry {
+export interface ELFSegment {
     /** The index of this segment, as parsed. */
     index: number;
     /** The type of this segment. */
@@ -266,7 +266,7 @@ export interface ELFProgramHeaderEntry {
 /** 
  * A section, parsed from the ELF file program header entries. 
  */
-export interface ELFSectionHeaderEntry {
+export interface ELFSection {
     /** The index of this section, as parsed. */
     index: number;
     /** The index for the name for this section in the global string table. */

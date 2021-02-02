@@ -1,18 +1,18 @@
 
-import { ELFProgramHeaderEntry } from './types';
+import { ELFSegment } from './types';
 import { programHeaderEntryTypeToString, programHeaderFlagsToString } from './strings';
 import { Reader } from './reader';
 import { toNumberSafe } from './biginthelpers';
 
 export async function readProgramHeaderEntries(fh: Reader,
     ph_off: number | BigInt, ph_entsize: number, ph_num: number,
-    bits: number, bigEndian: boolean): Promise<ELFProgramHeaderEntry[]> {
+    bits: number, bigEndian: boolean): Promise<ELFSegment[]> {
 
     if (ph_num == 0) {
         return [];
     }
 
-    const result = new Array<ELFProgramHeaderEntry>(ph_num);
+    const result = new Array<ELFSegment>(ph_num);
 
     for (let i = 0; i < ph_num; i++) {
         const view = await fh.view(ph_entsize, Number(ph_off) + i * Number(ph_entsize));

@@ -1,5 +1,5 @@
 import {
-    ELFSymbol, ELFSectionHeaderEntry, SectionHeaderEntryType
+    ELFSymbol, ELFSection, SectionHeaderEntryType
 } from "./types";
 import {
     symbolBindingToString, symbolTypeToString, symbolVisibilityToString,
@@ -119,14 +119,14 @@ function fillInSymbolNames(symbols: ELFSymbol[], strings?: { [index: number]: st
 export async function readSectionHeaderEntries(fh: Reader,
     sh_off: number | BigInt, sh_entsize: number, sh_num: number,
     bits: number, bigEndian: boolean, eSHStrNdx: number,
-    readSymbolData: boolean): Promise<ELFSectionHeaderEntry[]> {
+    readSymbolData: boolean): Promise<ELFSection[]> {
 
     if (sh_num == 0) {
         return [];
     }
 
 
-    const result: ELFSectionHeaderEntry[] = new Array(sh_num);
+    const result: ELFSection[] = new Array(sh_num);
 
     for (let i = 0; i < sh_num; i++) {
         const view = await fh.view(sh_entsize, Number(sh_off) + i * Number(sh_entsize));
@@ -158,7 +158,7 @@ export async function readSectionHeaderEntries(fh: Reader,
             entsize = toNumberSafe(readUInt64(ix)); ix += 8;
         }
 
-        const section: ELFSectionHeaderEntry = {
+        const section: ELFSection = {
             index: i,
             name: "",
             nameix: name,
@@ -208,7 +208,7 @@ export async function readSectionHeaderEntries(fh: Reader,
     return result;
 }
 
-function fillInSectionHeaderNames(sections: ELFSectionHeaderEntry[], eSHStrNdx: number) {
+function fillInSectionHeaderNames(sections: ELFSection[], eSHStrNdx: number) {
     if (eSHStrNdx < sections.length) {
         const strs = sections[eSHStrNdx] && sections[eSHStrNdx].strings;
         if (strs) {

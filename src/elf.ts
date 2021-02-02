@@ -1,4 +1,4 @@
-import { ELF, ABI, ISA, ObjectType, ELFProgramHeaderEntry, ELFSectionHeaderEntry, ELFSymbol } from "./types";
+import { ELF, ABI, ISA, ObjectType, ELFSegment, ELFSection, ELFSymbol } from "./types";
 import { add, subtract, toNumberSafe } from './biginthelpers';
 
 function filterSymbolsByVirtualAddress(elf: ELF, start: number | BigInt, size: number | BigInt): ELFSymbol[] {
@@ -41,28 +41,28 @@ export function getSymbols(elf: ELF): ELFSymbol[] {
 
 /** Get all the symbols that are addressed inside a given section.
  * @param elf the ELF file.
- * @param {ELFSectionHeaderEntry | number} sectionOrIndex either the section or the index of the section.
+ * @param {ELFSection | number} sectionOrIndex either the section or the index of the section.
  * @returns {ELFSymbol[]} an array of symbols that are addressed in the section.
  */
-export function getSymbolsInSection(elf: ELF, sectionOrIndex: ELFSectionHeaderEntry | number): ELFSymbol[] {
+export function getSymbolsInSection(elf: ELF, sectionOrIndex: ELFSection | number): ELFSymbol[] {
     const section = typeof sectionOrIndex == 'number' ? elf.sections[sectionOrIndex] : sectionOrIndex;
     return filterSymbolsByVirtualAddress(elf, section.addr, section.size);
 }
 
 /** Get all the symbols that are addressed inside a given segment. 
- * @param {ELFProgramHeaderEntry | number} segmentOrIndex either the segment or the index of the segment.
+ * @param {ELFSegment | number} segmentOrIndex either the segment or the index of the segment.
  * @returns {ELFSymbol[]} an array of symbols that are addressed in the segment.
 */
-export function getSymbolsInSegment(elf: ELF, segmentOrIndex: ELFProgramHeaderEntry | number): ELFSymbol[] {
+export function getSymbolsInSegment(elf: ELF, segmentOrIndex: ELFSegment | number): ELFSymbol[] {
     const segment = typeof segmentOrIndex == 'number' ? elf.segments[segmentOrIndex] : segmentOrIndex;
     return filterSymbolsByVirtualAddress(elf, segment.vaddr, segment.memsz);
 }
 
 /** Get all the section that are addressed inside a given segment.
- * @param {ELFProgramHeaderEntry | number} segmentOrIndex either the segment or the index of the segment.
- * @returns {ELFSectionHeaderEntry[]} an array of sections that are addressed in the segment.
+ * @param {ELFSegment | number} segmentOrIndex either the segment or the index of the segment.
+ * @returns {ELFSection[]} an array of sections that are addressed in the segment.
 */
-export function getSectionsInSegment(elf: ELF, segmentOrIndex: ELFProgramHeaderEntry | number): ELFSectionHeaderEntry[] {
+export function getSectionsInSegment(elf: ELF, segmentOrIndex: ELFSegment | number): ELFSection[] {
     const segment = typeof segmentOrIndex == 'number' ? elf.segments[segmentOrIndex] : segmentOrIndex;
 
     return elf.sections.filter(x => x.addr > segment.vaddr && x.addr < add(segment.vaddr, segment.memsz));
@@ -70,9 +70,9 @@ export function getSectionsInSegment(elf: ELF, segmentOrIndex: ELFProgramHeaderE
 
 /** Get the first section in which a symbol is addressed.
  * @param {Symbol} symbol The symbol
- * @returns {ELFSectionHeaderEntry[]} an array of sections that contain the symbol.
+ * @returns {ELFSection[]} an array of sections that contain the symbol.
  */
-export function getSectionsForSymbol(elf: ELF, symbol: ELFSymbol): ELFSectionHeaderEntry[] {
+export function getSectionsForSymbol(elf: ELF, symbol: ELFSymbol): ELFSection[] {
     const sections = [];
     for (const section of elf.sections) {
         if (symbol.virtualAddress && 
@@ -87,17 +87,17 @@ export function getSectionsForSymbol(elf: ELF, symbol: ELFSymbol): ELFSectionHea
 
 /** Get all sections in which a symbol is addressed. 
  * @param {Symbol} symbol The symbol
- * @returns {ELFSectionHeaderEntry} the first section which contains the symbol.
+ * @returns {ELFSection} the first section which contains the symbol.
 */
-export function getSectionForSymbol(elf: ELF, symbol: ELFSymbol): ELFSectionHeaderEntry {
+export function getSectionForSymbol(elf: ELF, symbol: ELFSymbol): ELFSection {
     return getSectionsForSymbol(elf, symbol)[0]
 }
 
 /** Get the first segment in which a symbol is addressed. 
  * @param {Symbol} symbol The symbol
- * @returns {ELFSectionHeaderEntry} all segments which contain the symbol.
+ * @returns {ELFSection} all segments which contain the symbol.
 */
-export function getSegmentsForSymbol(elf: ELF, symbol: ELFSymbol): ELFProgramHeaderEntry[] {
+export function getSegmentsForSymbol(elf: ELF, symbol: ELFSymbol): ELFSegment[] {
     const segments = [];
     for (const segment of elf.segments) {
         if (symbol.virtualAddress && 
@@ -112,9 +112,9 @@ export function getSegmentsForSymbol(elf: ELF, symbol: ELFSymbol): ELFProgramHea
 
 /** Get the first segment in which a symbol is addressed. 
  * @param {Symbol} symbol The symbol
- * @returns {ELFSectionHeaderEntry} the first segment which contains the symbol.
+ * @returns {ELFSection} the first segment which contains the symbol.
 */
-export function getSegmentForSymbol(elf: ELF, symbol: ELFSymbol): ELFProgramHeaderEntry | undefined {
+export function getSegmentForSymbol(elf: ELF, symbol: ELFSymbol): ELFSegment | undefined {
     return getSegmentsForSymbol(elf, symbol)[0];
 }
 
@@ -160,9 +160,9 @@ export function getSymbolsAtPhysicalMemoryLocation(elf: ELF, location: number | 
 
 /** Get all the sections that overlap a given virtual memory location 
  * @param {number | BigInt} location The virtual memory address.
- * @returns {ELFSectionHeaderEntry[]} an array of sections that find the location inside of them.
+ * @returns {ELFSection[]} an array of sections that find the location inside of them.
 */
-export function getSectionsAtVirtualMemoryLocation(elf: ELF, location: number | BigInt): ELFSectionHeaderEntry[] {
+export function getSectionsAtVirtualMemoryLocation(elf: ELF, location: number | BigInt): ELFSection[] {
     const sections = [];
     for (const section of elf.sections) {
         if (location >= section.addr && location < add(section.addr, section.size)) {
@@ -175,9 +175,9 @@ export function getSectionsAtVirtualMemoryLocation(elf: ELF, location: number | 
 
 /** Get all the sections that overlap a given physical memory location 
  * @param {number | BigInt} location The physical memory address.
- * @returns {ELFSectionHeaderEntry[]} an array of sections that find the location inside of them.
+ * @returns {ELFSection[]} an array of sections that find the location inside of them.
 */
-export function getSectionsAtPhysicalMemoryLocation(elf: ELF, location: number | BigInt): ELFSectionHeaderEntry[] {
+export function getSectionsAtPhysicalMemoryLocation(elf: ELF, location: number | BigInt): ELFSection[] {
     const virtualAddress = physicalAddressToVirtual(elf, location);
     if (virtualAddress) {
         return getSectionsAtVirtualMemoryLocation(elf, virtualAddress);
@@ -188,9 +188,9 @@ export function getSectionsAtPhysicalMemoryLocation(elf: ELF, location: number |
 
 /** Get all the segments that overlap a given virtual memory location
  * @param {number | BigInt} location The virtual memory address.
- * @returns {ELFSectionHeaderEntry} all segments which contain the address.
+ * @returns {ELFSection} all segments which contain the address.
 */
-export function getSegmentsAtVirtualMemoryLocation(elf: ELF, location: number | BigInt): ELFProgramHeaderEntry[] {
+export function getSegmentsAtVirtualMemoryLocation(elf: ELF, location: number | BigInt): ELFSegment[] {
     const segments = [];
     for (const segment of elf.segments) {
         if (location >= segment.vaddr && location < add(segment.vaddr, segment.memsz)) {
@@ -202,9 +202,9 @@ export function getSegmentsAtVirtualMemoryLocation(elf: ELF, location: number | 
 
 /** Get all the segments that overlap a given physical memory location 
  * @param {number | BigInt} location The physical memory address.
- * @returns {ELFSectionHeaderEntry} all segments which contain the address.
+ * @returns {ELFSection} all segments which contain the address.
 */
-export function getSegmentsAtPhysicalMemoryLocation(elf: ELF, location: number | BigInt): ELFProgramHeaderEntry[] {
+export function getSegmentsAtPhysicalMemoryLocation(elf: ELF, location: number | BigInt): ELFSegment[] {
     const segments = [];
     for (const segment of elf.segments) {
         if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
@@ -310,17 +310,17 @@ export function fileOffsetToVirtualAddress(elf: ELF, location: number): number |
 
 /** Get the first section that matches the name (case-insensitive). 
  * @param {string} sectionName the name of the section to find.
- * @returns {ELFSectionHeaderEntry} The first section that matches the name
+ * @returns {ELFSection} The first section that matches the name
 */
-export function getSectionByName(elf: ELF, sectionName: string): ELFSectionHeaderEntry {
+export function getSectionByName(elf: ELF, sectionName: string): ELFSection {
     return getSectionsByName(elf, sectionName)[0];
 }
 
 /** Get all sections that matches the name (case-insensitive). 
  * @param {string} sectionName the name of the sections to find.
- * @returns {ELFSectionHeaderEntry[]} an array of sections that match the name.
+ * @returns {ELFSection[]} an array of sections that match the name.
 */
-export function getSectionsByName(elf: ELF, sectionName: string): ELFSectionHeaderEntry[] {
+export function getSectionsByName(elf: ELF, sectionName: string): ELFSection[] {
     return elf.sections.filter(s => s.name.toUpperCase() == sectionName.toUpperCase());
 }
 
