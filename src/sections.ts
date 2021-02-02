@@ -125,7 +125,7 @@ async function readRelocationSection(fh: Reader, offset: number, size: number,
 
         let ix = 0;
 
-        let addr, info;
+        let addr, info, symbolIndex, type;
         let addend: number | BigInt | undefined;
         if (bits == 32) {
             addr = readUInt32(ix); ix += 4;
@@ -133,18 +133,24 @@ async function readRelocationSection(fh: Reader, offset: number, size: number,
             if (rela) {
                 addend = readSInt32(ix); ix += 4;
             }
+            symbolIndex = info >> 8;
+            type = info & 0xff;
         } else {
             addr = readUInt64(ix); ix += 8;
-            info = readUInt64(ix); ix += 8;
+            info = toNumberSafe(readUInt64(ix)); ix += 8;
             if (rela) {
                 addend = readSInt64(ix); ix += 8;
             }
+            symbolIndex = info >> 32;
+            type = info & 0xffffffff;
         }
 
         relocations[i] = {
             addr,
             info,
-            addend
+            addend,
+            symbolIndex,
+            type
         };
     }
 
