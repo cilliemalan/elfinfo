@@ -1,9 +1,9 @@
-import { isSymbolSection } from './sections';
+import { isStringSection, isSymbolSection } from './sections';
 import { SectionHeaderEntryType, ELFOpenResult } from './types';
 import { ELF } from './types';
 
 function toHex(n: number | BigInt | undefined, padamount: number = 0) {
-    if (n) {
+    if (n !== undefined) {
         const hexchars = n.toString(16);
         if (padamount == 0) {
             padamount = typeof n == 'bigint' ? 8 :
@@ -93,8 +93,8 @@ export function debug(elf_: ELF | ELFOpenResult): string {
         }
 
         for (const section of elf.sections) {
-            if (isSymbolSection(section) && section.symbols.length > 0) {
-                result += `\n\n\Symbols for section #${section.index} ${section.name}:\n\n`;
+            if (isSymbolSection(section)) {
+                result += `\n\nSymbols for section #${section.index} ${section.name}:\n\n`;
                 if (elf.bits == 32) {
                     result += '      #   Value      Size       Type                         Bind   Visibility Name\n';
                 } else {
@@ -110,6 +110,13 @@ export function debug(elf_: ELF | ELFOpenResult): string {
                     result += `${symbol.bindingDescription.padEnd(6)} `;
                     result += `${symbol.visibilityDescription.padEnd(10)} `;
                     result += `${symbol.name}\n`;
+                }
+            }
+
+            if (isStringSection(section)) {
+                result += `\n\nStrings for section #${section.index} ${section.name}:\n\n`;
+                for (const string in section.strings) {
+                    result += `  #${string} - ${section.strings[string]}\n`;
                 }
             }
         }
