@@ -304,7 +304,7 @@ export interface ELFSection {
 /** A string table section. */
 export interface ELFStringSection extends ELFSection {
     /** The strings parsed from this section in the case of a string table section.  */
-    strings?: { [index: number]: string };
+    strings: { [index: number]: string };
 }
 
 /** A symbol table section. */
