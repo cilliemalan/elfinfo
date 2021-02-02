@@ -1,5 +1,6 @@
 import { FileHandle, open as fsopen } from "fs/promises";
 import * as fs from 'fs';
+import * as path from 'path';
 import { stringify } from "querystring";
 
 interface BufferState {
@@ -188,10 +189,10 @@ export function syncfile(handle: number, ownshandle?: boolean): Reader {
     };
 }
 
-export function file(path: string): Reader {
+export function file(elfpath: string): Reader {
     if (!fs) return error_reader('No filesystem');
 
-    const state = { path, fh: undefined as FileHandle | undefined, size: 0 };
+    const state = { path: elfpath, fh: undefined as FileHandle | undefined, size: 0 };
     return {
         open: () => fsopen(state.path, 'r')
             .then(fh => {
@@ -201,7 +202,8 @@ export function file(path: string): Reader {
         read: (length, position) => asyncFileRead(state.fh, length, position),
         view: (length, position) => asyncFileRead(state.fh, length, position).then(createView),
         size: () => state.size,
-        close: () => state.fh ? state.fh.close() : Promise.resolve()
+        close: () => state.fh ? state.fh.close() : Promise.resolve(),
+        path: path.resolve(elfpath)
     }
 }
 
@@ -228,6 +230,6 @@ export function blob(item: Blob): Reader {
         close: () => Promise.resolve(),
         size: () => state.size,
         read: (length, position) => bufferRead(state, length, position),
-        view: (length, position) => bufferRead(state, length, position).then(createView),
+        view: (length, position) => bufferRead(state, length, position).then(createView)
     }
 }
