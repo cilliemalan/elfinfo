@@ -15,7 +15,7 @@ export interface OpenOptions {
 };
 
 async function updateSymbolAddressesAndLoadSymbols(elf: ELF, reader: Reader, loadSymbols: boolean) {
-    const readerSize = await reader.size();
+    const readerSize = reader.size();
     const elftype = elf.type;
     if (elftype === ObjectType.Executable || elftype === ObjectType.Relocatable || elftype === ObjectType.Shared) {
         for (const section of elf.sections) {

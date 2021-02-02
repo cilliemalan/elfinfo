@@ -40,41 +40,48 @@ async function findTests() {
 }
 
 async function run() {
-    const { stdout, stderr } = process;
+    const { stdout, stderr, argv } = process;
+
+    const filter = argv[2] ? new RegExp(argv[2]) : undefined;
+
     let passed = 0, failed = 0;
     for (const { name, fn } of tests) {
-        let success = false;
-        let stack: string | undefined;
-        try {
-            stdout.write(`👉 ${name}`, 'utf-8');
+
+        if (!filter || filter.test(name)) {
+
+            let success = false;
+            let stack: string | undefined;
+            try {
+                stdout.write(`👉 ${name}`, 'utf-8');
+                stdout.uncork();
+
+                const result = fn();
+                if (result instanceof Promise) {
+                    await result;
+                }
+                success = true;
+            } catch (e) {
+                success = false;
+                stack = e ? (e.stack ?? (e.toString ? e.toString() : `${e}`)) : undefined;
+            }
+
+            stdout.cork();
+            stderr.cork();
+            if (success) {
+                stdout.write('\r✔️\n', 'utf-8');
+                passed++
+            } else {
+                stderr.write('\r❌\n', 'utf-8');
+                failed++;
+                if (stack) {
+                    stack = stack.split('\n').map(l => `    ${l}`).join('\n');
+                    stderr.write(stack, 'utf-8');
+                    stderr.write('\n', 'utf-8');
+                }
+            }
             stdout.uncork();
-
-            const result = fn();
-            if (result instanceof Promise) {
-                await result;
-            }
-            success = true;
-        } catch (e) {
-            success = false;
-            stack = e ? (e.stack ?? (e.toString ? e.toString() : `${e}`)) : undefined;
+            stderr.uncork();
         }
-
-        stdout.cork();
-        stderr.cork();
-        if (success) {
-            stdout.write('\r✔️\n', 'utf-8');
-            passed++
-        } else {
-            stderr.write('\r❌\n', 'utf-8');
-            failed++;
-            if (stack) {
-                stack = stack.split('\n').map(l => `    ${l}`).join('\n');
-                stderr.write(stack, 'utf-8');
-                stderr.write('\n', 'utf-8');
-            }
-        }
-        stdout.uncork();
-        stderr.uncork();
     }
 
     if (failed) {

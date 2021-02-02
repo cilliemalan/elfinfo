@@ -1,19 +1,31 @@
+import { FileHandle, open as fsopen } from "fs/promises";
+import * as fs from 'fs';
+import { stringify } from "querystring";
+
 interface BufferState {
-    array: ArrayBuffer,
+    array?: ArrayBuffer,
     offset: number;
     size: number;
     position: number;
 }
 
-function bufferRead(state: BufferState, length?: number | null, position?: number | null): Promise<Uint8Array> {
+function bufferRead(state: BufferState, length: number, position?: number): Promise<Uint8Array> {
     let updatepos = false;
-    if (position === null || position === undefined) {
+    const { array } = state;
+
+    if (!array) {
+        return Promise.reject("state.array must be defined");
+    }
+    if (!length) {
+        return Promise.reject('Length must be specified');
+    }
+
+    if (!position) {
         position = state.position;
         updatepos = true;
     }
-    if (length === null || length === undefined) {
-        return Promise.reject('Length must be specified');
-    } else if (position <= state.size) {
+
+    if (position <= state.size) {
 
         if (position + length > state.size) {
             length = state.size - position;
@@ -27,10 +39,39 @@ function bufferRead(state: BufferState, length?: number | null, position?: numbe
             state.position += length;
         }
 
-        return Promise.resolve(new Uint8Array(state.array, state.offset + position, length));
+        return Promise.resolve(new Uint8Array(array, state.offset + position, length));
     } else {
         return Promise.reject("read past end of file");
     }
+}
+
+async function asyncFileRead(file: FileHandle | undefined, length: number, position?: number): Promise<Uint8Array> {
+    if (!file) throw "File not open";
+    const result = new Uint8Array(length);
+    const { bytesRead } = await file.read(result, 0, length, position);
+    if (bytesRead < length) {
+        return result.slice(0, bytesRead);
+    } else {
+        return result;
+    }
+}
+
+function syncFileRead(file: number, length: number, position?: number): Promise<Uint8Array> {
+    return new Promise((resolve, reject) => {
+        const result = new Uint8Array(length);
+        fs.read(file, result, 0, length, position ?? null,
+            (err: any, bytesRead: number) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    if (bytesRead < length) {
+                        resolve(result.slice(0, bytesRead))
+                    } else {
+                        resolve(result);
+                    }
+                }
+            });
+    })
 }
 
 function createView(from: Uint8Array): DataView {
@@ -59,7 +100,7 @@ export interface Reader {
      */
     view(length: number, position?: number): Promise<DataView>;
     /** Returns the size of the data source */
-    size(): Promise<number>;
+    size(): number;
     /** Closes the data source */
     close(): Promise<void>;
 }
@@ -69,7 +110,7 @@ function error_reader(message: string): Reader {
         open: () => Promise.reject(message),
         read: (a, b) => Promise.reject(message),
         view: (a, b) => Promise.reject(message),
-        size: () => Promise.reject(message),
+        size: () => -1,
         close: () => Promise.reject(message)
     }
 }
@@ -92,8 +133,100 @@ export function buffer<TBuffer extends Uint8Array>(buffer: TBuffer | ArrayBuffer
 
     return {
         open: () => Promise.resolve(),
-        size: () => Promise.resolve(state.size),
+        size: () => state.size,
         close: () => Promise.resolve(),
+        read: (length, position) => bufferRead(state, length, position),
+        view: (length, position) => bufferRead(state, length, position).then(createView),
+    }
+}
+
+export function asyncfile(fh: FileHandle, ownshandle?: boolean): Reader {
+    if (!fs) return error_reader('No filesystem');
+
+    const state = { fh, size: 0, ownshandle };
+    return {
+        // open checks if the file handle is still valid
+        // and gets the size
+        open: () => state.fh.stat().then(ss => { state.size = ss.size; }),
+        read: (length, position) => asyncFileRead(state.fh, length, position),
+        view: (length, position) => asyncFileRead(state.fh, length, position).then(createView),
+        size: () => state.size,
+        close: () => state.ownshandle ? state.fh.close() : Promise.resolve()
+    }
+}
+
+export function syncfile(handle: number, ownshandle?: boolean): Reader {
+    if (!fs) return error_reader('No filesystem');
+
+    const state = { ownshandle, handle, size: 0 };
+    return {
+        open: () => new Promise((resolve, reject) => fs.fstat(state.handle, (e, ss) => {
+            // open just checks if the file handle is still valid
+            if (e) {
+                reject(e);
+            } else {
+                state.size = ss.size;
+                resolve();
+            }
+        })),
+        read: (length, position) => syncFileRead(state.handle, length, position),
+        view: (length, position) => syncFileRead(state.handle, length, position).then(createView),
+        size: () => state.size,
+        close: () => new Promise((resolve, reject) => {
+            if (state.ownshandle) {
+                fs.close(state.handle, e => {
+                    if (e) {
+                        reject(e);
+                    } else {
+                        resolve();
+                    }
+                })
+            } else {
+                resolve();
+            }
+        })
+    };
+}
+
+export function file(path: string): Reader {
+    if (!fs) return error_reader('No filesystem');
+
+    const state = { path, fh: undefined as FileHandle | undefined, size: 0 };
+    return {
+        open: () => fsopen(state.path, 'r')
+            .then(fh => {
+                state.fh = fh;
+                return fh.stat().then(ss => { state.size = ss.size });
+            }),
+        read: (length, position) => asyncFileRead(state.fh, length, position),
+        view: (length, position) => asyncFileRead(state.fh, length, position).then(createView),
+        size: () => state.size,
+        close: () => state.fh ? state.fh.close() : Promise.resolve()
+    }
+}
+
+/** Blob for the browser and future node */
+export interface Blob {
+    readonly size: number;
+    arrayBuffer(): Promise<ArrayBuffer>;
+}
+
+export function blob(item: Blob): Reader {
+    const state: BufferState = {
+        offset: 0,
+        position: 0,
+        size: 0
+    }
+
+    return {
+        open: () => item.arrayBuffer().then(ab => {
+            state.array = ab;
+            state.offset = 0;
+            state.position = 0;
+            state.size = ab.byteLength;
+        }),
+        close: () => Promise.resolve(),
+        size: () => state.size,
         read: (length, position) => bufferRead(state, length, position),
         view: (length, position) => bufferRead(state, length, position).then(createView),
     }
