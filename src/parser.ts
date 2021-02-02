@@ -101,7 +101,7 @@ export async function readElf(reader: Reader, options: OpenOptions): Promise<ELF
                 const headerview = await reader.view(sizeLeft);
                 const readUInt16 = (ix: number) => headerview.getUint16(ix, !bigEndian);
                 const readUInt32 = (ix: number) => headerview.getUint32(ix, !bigEndian);
-                const readUInt64 = (ix: number) => headerview.getBigInt64(ix, !bigEndian);
+                const readUInt64 = (ix: number) => headerview.getBigUint64(ix, !bigEndian);
 
                 let ix = 0;
                 const eType = readUInt16(ix); ix += 2;

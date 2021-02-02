@@ -64,7 +64,7 @@ async function readSymbolsSection(fh: Reader, offset: number, size: number,
         const readUint8 = view.getUint8.bind(view);
         const readUInt16 = (ix: number) => view.getUint16(ix, !bigEndian);
         const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);
-        const readUInt64 = (ix: number) => view.getBigInt64(ix, !bigEndian);
+        const readUInt64 = (ix: number) => view.getBigUint64(ix, !bigEndian);
 
         let ix = 0;
 
@@ -180,7 +180,7 @@ export async function readSectionHeaderEntries(fh: Reader,
     for (let i = 0; i < sh_num; i++) {
         const view = await fh.view(sh_entsize, Number(sh_off) + i * Number(sh_entsize));
         const readUInt32 = (ix: number) => view.getUint32(ix, !bigEndian);
-        const readUInt64 = (ix: number) => view.getBigInt64(ix, !bigEndian);
+        const readUInt64 = (ix: number) => view.getBigUint64(ix, !bigEndian);
 
         const name = readUInt32(0);
         const type = readUInt32(4);
