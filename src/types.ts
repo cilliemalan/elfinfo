@@ -256,7 +256,7 @@ export interface ELFSegment {
     /** The physical address for this segment. Also called the LMA or load address. */
     paddr: number | BigInt;
     /** The size of this segment in the ELF file */
-    filesz: number ;
+    filesz: number;
     /** The size of this segment in (virtual) memory. */
     memsz: number;
     /** The alignment of this segment (the segment must be loaded to an address in multiples of this). */
@@ -301,14 +301,22 @@ export interface ELFSection {
     entsize: number;
 }
 
+/** A string table section. */
 export interface ELFStringSection extends ELFSection {
     /** The strings parsed from this section in the case of a string table section.  */
     strings?: { [index: number]: string };
 }
 
+/** A symbol table section. */
 export interface ELFSymbolSection extends ELFSection {
     /** The symbols parsed from this section. */
     symbols: ELFSymbol[];
+}
+
+/** A relocation table section. */
+export interface ELFRelocationSection extends ELFSection {
+    /** The relocations parsed from this section. */
+    relocations: ELFRelocation[];
 }
 
 /** 
@@ -345,9 +353,45 @@ export interface ELFSymbol {
      * in a relocatable ELF file (object file).
      */
     shndx: number;
-    
+
     /** The calculated virtaul address for the symbol, if possible */
     virtualAddress?: number | BigInt;
     /** The data for the symbol, if any and if it was specified to be loaded */
     data?: Uint8Array;
+}
+
+/**
+ * A relocation as found in a relocation section.
+ * @summary if the section is a Rel section, addend will be undefined. If
+ * the section is a Rela section, addend will be set.
+ */
+export interface ELFRelocation {
+    /**
+     * The location at which to apply the relocation action.
+     * @summary This member gives the location at which to apply the relocation action. For
+     * a relocatable file, the value is the byte offset from the beginning of the
+     * section to the storage unit affected by the relocation. For an executable file
+     * or a shared object, the value is the virtual address of the storage unit affected
+     * by the relocation.
+     */
+    addr: number | BigInt;
+
+    /**
+     * The symbol table index with respect to which the
+     * relocation must be made, and the type of relocation to apply.
+     * @summary This member gives both the symbol table index with respect to which the
+     * relocation must be made, and the type of relocation to apply. For example,
+     * a call instruction's relocation entry would hold the symbol table index of
+     * the function being called. If the index is STN_UNDEF, the undefined symbol
+     * index, the relocation uses 0 as the "symbol value.'' Relocation types are
+     * processor-specific; descriptions of their behavior appear in the processor
+     * supplement. When the text in the processor supplement refers to a
+     * relocation entry's relocation type or symbol table index, it means the result
+     * of applying ELF32_R_TYPE or ELF32_R_SYM, respectively, to the
+     * entry's r_info member.
+     */
+    info: number | BigInt;
+
+    /** A constant addend used to compute the value to be stored into the relocatable field. */
+    addend?: number | BigInt;
 }
