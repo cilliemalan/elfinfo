@@ -1,3 +1,4 @@
+import { isSymbolSection } from './sections';
 import { SectionHeaderEntryType, ELFOpenResult } from './types';
 import { ELF } from './types';
 
@@ -92,7 +93,7 @@ export function debug(elf_: ELF | ELFOpenResult): string {
         }
 
         for (const section of elf.sections) {
-            if (section.symbols && section.symbols.length > 0) {
+            if (isSymbolSection(section) && section.symbols.length > 0) {
                 result += `\n\n\Symbols for section #${section.index} ${section.name}:\n\n`;
                 if (elf.bits == 32) {
                     result += '      #   Value      Size       Type                         Bind   Visibility Name\n';

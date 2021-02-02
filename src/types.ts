@@ -299,10 +299,16 @@ export interface ELFSection {
      * table section this is the size of a symbol entry.
      */
     entsize: number;
+}
+
+export interface ELFStringSection extends ELFSection {
     /** The strings parsed from this section in the case of a string table section.  */
     strings?: { [index: number]: string };
-    /** The symbols parsed from this section in the case of a symbol table section. */
-    symbols?: ELFSymbol[];
+}
+
+export interface ELFSymbolSection extends ELFSection {
+    /** The symbols parsed from this section. */
+    symbols: ELFSymbol[];
 }
 
 /** 

@@ -1,7 +1,7 @@
 import { abiToString, isaToString, objectTypeToString, elfFlagsToString } from "./strings";
 import { ELF, ABI, ISA, ObjectType, ELFOpenResult, SymbolType } from "./types";
 import { readProgramHeaderEntries } from "./segments";
-import { readSectionHeaderEntries } from "./sections";
+import { isSymbolSection, readSectionHeaderEntries } from "./sections";
 import { Reader } from "./reader";
 import { virtualAddressToFileOffset } from "./elf";
 import { add, toNumberSafe } from "./biginthelpers";
@@ -19,7 +19,7 @@ async function updateSymbolAddressesAndLoadSymbols(elf: ELF, reader: Reader, loa
     const elftype = elf.type;
     if (elftype === ObjectType.Executable || elftype === ObjectType.Relocatable || elftype === ObjectType.Shared) {
         for (const section of elf.sections) {
-            if (section.symbols) {
+            if (isSymbolSection(section)) {
                 for (const symbol of section.symbols) {
                     if (elftype === ObjectType.Relocatable) {
                         if (symbol.shndx < elf.sections.length) {

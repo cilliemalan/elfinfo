@@ -1,5 +1,5 @@
 import {
-    ELFSymbol, ELFSection, SectionHeaderEntryType
+    ELFSymbol, ELFSection, SectionHeaderEntryType, ELFSymbolSection, ELFStringSection
 } from "./types";
 import {
     symbolBindingToString, symbolTypeToString, symbolVisibilityToString,
@@ -178,27 +178,27 @@ export async function readSectionHeaderEntries(fh: Reader,
         result[i] = section;
     }
 
-    // find strtab
-    for (let i = 0; i < sh_num; i++) {
-        const section = result[i];
-        const { size, type, offset } = section;
-
-        if (size < MAX_SECTION_LOAD_SIZE && type === SectionHeaderEntryType.StrTab) {
+    // process string tables
+    for (const section of result) {
+        if (isStringSection(section)) {
+            const { size, offset } = section;
             section.strings = await readStringSection(fh, offset, size);
         }
     }
 
-    // process all symbols
-    for (let i = 0; i < sh_num; i++) {
-        const section = result[i];
-        const { size, type, offset, entsize, link } = section;
+    // process symbol sections
+    for (const section of result) {
+        if (isSymbolSection(section)) {
+            const { size, offset, entsize, link } = section;
+            section.symbols = await readSymbolsSection(fh, offset, size, entsize, bigEndian, bits);
 
-        if (size < MAX_SECTION_LOAD_SIZE &&
-            (type === SectionHeaderEntryType.SymTab || type === SectionHeaderEntryType.DynSym)) {
-            section.symbols = await readSymbolsSection(fh, Number(offset), Number(size), Number(entsize),
-                bigEndian, bits);
             if (link >= 0 && link < result.length) {
-                fillInSymbolNames(section.symbols, result[link].strings);
+                const stringsSection = result[link];
+                if (isStringSection(stringsSection)) {
+                    fillInSymbolNames(section.symbols, stringsSection.strings);
+                } else {
+                    // TODO: error: linked section is not a string table
+                }
             }
         }
     }
@@ -210,18 +210,33 @@ export async function readSectionHeaderEntries(fh: Reader,
 
 function fillInSectionHeaderNames(sections: ELFSection[], eSHStrNdx: number) {
     if (eSHStrNdx < sections.length) {
-        const strs = sections[eSHStrNdx] && sections[eSHStrNdx].strings;
-        if (strs) {
-            sections.forEach(v => {
-                if (v.nameix == 0) {
-                    v.name = "<null>";
-                } else {
-                    const name = getString(strs, v.nameix);
-                    if (name) {
-                        v.name = name;
+        const stringsSection = sections[eSHStrNdx];
+        if (isStringSection(stringsSection)) {
+            const strs = stringsSection.strings;
+            if (strs) {
+                sections.forEach(v => {
+                    if (v.nameix == 0) {
+                        v.name = "<null>";
+                    } else {
+                        const name = getString(strs, v.nameix);
+                        if (name) {
+                            v.name = name;
+                        }
                     }
-                }
-            });
+                });
+            }
+        } else {
+            // TODO: error: eSHStrNdx is not a string table
         }
     }
+}
+
+
+export function isStringSection(section: ELFSection): section is ELFStringSection {
+    return section?.type === SectionHeaderEntryType.StrTab;
+}
+
+export function isSymbolSection(section: ELFSection): section is ELFSymbolSection {
+    return section?.type === SectionHeaderEntryType.DynSym ||
+        section?.type === SectionHeaderEntryType.SymTab;
 }

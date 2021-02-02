@@ -1,5 +1,6 @@
-import { ELF, ABI, ISA, ObjectType, ELFSegment, ELFSection, ELFSymbol } from "./types";
+import { ELF, ABI, ISA, ObjectType, ELFSegment, ELFSection, ELFSymbol, ELFSymbolSection } from "./types";
 import { add, subtract, toNumberSafe } from './biginthelpers';
+import { isSymbolSection } from "./sections";
 
 function filterSymbolsByVirtualAddress(elf: ELF, start: number | BigInt, size: number | BigInt): ELFSymbol[] {
 
@@ -7,7 +8,7 @@ function filterSymbolsByVirtualAddress(elf: ELF, start: number | BigInt, size: n
 
     const symbols = [];
     for (const section of elf.sections) {
-        if (section.symbols) {
+        if (isSymbolSection(section)) {
             for (const symbol of section.symbols) {
                 if (symbol.virtualAddress && symbol.virtualAddress >= start && symbol.virtualAddress < end) {
                     symbols.push(symbol);
@@ -26,11 +27,9 @@ function filterSymbolsByVirtualAddress(elf: ELF, start: number | BigInt, size: n
  * @returns an array of symbols.
 */
 export function getSymbols(elf: ELF): ELFSymbol[] {
-    const allsyms = elf.sections
-        .filter(she => she.symbols && she.symbols.length);
     const result = [];
     for (const section of elf.sections) {
-        if (section.symbols && section.symbols.length) {
+        if (isSymbolSection(section)) {
             for(const sym of section.symbols) {
                 result.push(sym);
             }
@@ -125,7 +124,7 @@ export function getSegmentForSymbol(elf: ELF, symbol: ELFSymbol): ELFSegment | u
 export function getSymbolsAtVirtualMemoryLocation(elf: ELF, location: number | BigInt): ELFSymbol[] {
     const symbols: ELFSymbol[] = [];
     for (const section of elf.sections) {
-        if (section.symbols) {
+        if (isSymbolSection(section)) {
             for (const symbol of section.symbols) {
                 if (symbol.size == 0) {
                     if (symbol.virtualAddress === location) {
@@ -330,7 +329,7 @@ export function getSectionsByName(elf: ELF, sectionName: string): ELFSection[] {
 */
 export function getSymbolByName(elf: ELF, symbolName: string): ELFSymbol | undefined {
     for (const section of elf.sections) {
-        if (section.symbols) {
+        if (isSymbolSection(section)) {
             for (const symbol of section.symbols) {
                 if (symbol.name && symbol.name.toUpperCase() == symbolName.toUpperCase()) {
                     return symbol
@@ -350,7 +349,7 @@ export function getSymbolByName(elf: ELF, symbolName: string): ELFSymbol | undef
 export function getSymbolsByName(elf: ELF, symbolName: string): ELFSymbol[] {
     const matches = [];
     for (const section of elf.sections) {
-        if (section.symbols) {
+        if (isSymbolSection(section)) {
             for (const symbol of section.symbols) {
                 if (symbol.name && symbol.name.toUpperCase() == symbolName.toUpperCase()) {
                     matches.push(symbol);
