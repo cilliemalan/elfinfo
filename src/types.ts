@@ -390,7 +390,7 @@ export interface ELFRelocation {
      * of applying ELF32_R_TYPE or ELF32_R_SYM, respectively, to the
      * entry's r_info member.
      */
-    info: number;
+    info: number | BigInt;
 
     /** A constant addend used to compute the value to be stored into the relocatable field. */
     addend?: number | BigInt;

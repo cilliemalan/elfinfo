@@ -137,12 +137,12 @@ async function readRelocationSection(fh: Reader, offset: number, size: number,
             type = info & 0xff;
         } else {
             addr = readUInt64(ix); ix += 8;
-            info = toNumberSafe(readUInt64(ix)); ix += 8;
+            info = readUInt64(ix); ix += 8;
             if (rela) {
                 addend = readSInt64(ix); ix += 8;
             }
-            symbolIndex = info >> 32;
-            type = info & 0xffffffff;
+            symbolIndex = toNumberSafe(info >> BigInt(32));
+            type = toNumberSafe(info & BigInt(0xffffffff));
         }
 
         relocations[i] = {
