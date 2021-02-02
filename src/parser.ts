@@ -191,7 +191,7 @@ export async function readElf(reader: Reader, options: OpenOptions): Promise<ELF
                         sections,
                     }
 
-                    updateSymbolAddressesAndLoadSymbols(elf, reader, options.readSymbolData);
+                    await updateSymbolAddressesAndLoadSymbols(elf, reader, options.readSymbolData);
                     success = true;
                 }
             }
