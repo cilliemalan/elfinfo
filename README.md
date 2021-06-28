@@ -11,7 +11,7 @@ import { open } from 'elfinfo';
 
 // Parse the specified ELF file.
 const elfdata = await fs.readFile('someelffile');
-const info = await open();
+const info = await open(elfdata);
 ```
 
 The `open` function above will parse the ELF file header, program headers, and sections. It will also
@@ -23,7 +23,7 @@ will parse directly from memory, and a file handle will read from the file.
 ### Examining the data
 Several functions are provided on the elf data structure for examining information
 about symbols and translating addresses. For example, `getSymbolsInSection` will get all the symbols
-exist in a specified setcion, `getSymbolFileOffset` will tell you the actual file offset of a symbol
+exist in a specified section, `getSymbolFileOffset` will tell you the actual file offset of a symbol
 (if possible) so you can actually read the symbol data. There are also functions for doing VMA and LMA
 stuff. Documentation is currently pending but autocomplete should work in an IDE like VS Code.
 
