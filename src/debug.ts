@@ -1,4 +1,4 @@
-import { isStringSection, isSymbolSection } from './sections';
+import { isRelocationSection, isStringSection, isSymbolSection } from './sections';
 import { SectionHeaderEntryType, ELFOpenResult } from './types';
 import { ELF } from './types';
 
@@ -93,13 +93,14 @@ export function debug(elf_: ELF | ELFOpenResult): string {
         }
 
         for (const section of elf.sections) {
+            result += `\n\n${section.typeDescription} section #${section.index} ${section.name}:\n\n`;
+
             if (isSymbolSection(section)) {
-                result += `\n\nSymbols for section #${section.index} ${section.name}:\n\n`;
                 if (elf.bits == 32) {
                     result += '      #   Value      Size       Type                         Bind   Visibility Name\n';
                 } else {
-                    result += '      #   Value              Size       Type                         Bind   Visibility Name\n';
-                }
+                    result += '      #   Value              Info       Type                         Bind   Visibility Name\n';
+                }// 0x0000000000000000
 
                 let ix = 0;
                 for (const symbol of section.symbols) {
@@ -112,12 +113,28 @@ export function debug(elf_: ELF | ELFOpenResult): string {
                     result += `${symbol.name}\n`;
                 }
             }
-
-            if (isStringSection(section)) {
-                result += `\n\nStrings for section #${section.index} ${section.name}:\n\n`;
+            else if (isStringSection(section)) {
                 for (const string in section.strings) {
                     result += `  #${string} - ${section.strings[string]}\n`;
                 }
+            }
+            else if (isRelocationSection(section)) {
+                `  Offset          Info           Type           Sym. Value    Sym. Name + Addend`
+                if (elf.bits == 32) {
+                    result += '        # Offset     Size       Type                         Bind   Visibility Name\n';
+                } else {
+                    result += '        # Offset             Size               Type                         Bind   Visibility Name\n';
+                }
+
+                let ix = 0;
+                for (const relocation of section.relocations) {
+                    result += `    ${(ix++).toString().padStart(5)} `;
+                    result += `${toHex(relocation.addr, addrpad)} `;
+                    result += `${toHex(relocation.info, addrpad)} `;
+                    result += '\n';
+                }
+            }
+            else {
             }
         }
 
