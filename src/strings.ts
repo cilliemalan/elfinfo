@@ -46,29 +46,29 @@ export function programHeaderEntryTypeToString(programHeaderEntryType: ProgramHe
 
 export function sectionHeaderEntryTypeToString(sectionHeaderEntryType: SectionHeaderEntryType): string {
     switch (sectionHeaderEntryType) {
-        case SectionHeaderEntryType.Null: return 'NULL section';
+        case SectionHeaderEntryType.Null: return 'NULL';
         case SectionHeaderEntryType.ProgBits: return 'Prog bits';
         case SectionHeaderEntryType.SymTab: return 'Symbol table';
         case SectionHeaderEntryType.StrTab: return 'String table';
-        case SectionHeaderEntryType.Rela: return 'Relocation section with addends';
+        case SectionHeaderEntryType.Rela: return 'Relocation with addends';
         case SectionHeaderEntryType.Hash: return 'Symbol hash table';
         case SectionHeaderEntryType.Dynamic: return 'Dynamic';
         case SectionHeaderEntryType.Note: return 'Note';
         case SectionHeaderEntryType.NoBits: return 'No bits';
-        case SectionHeaderEntryType.Rel: return 'Relocation section';
+        case SectionHeaderEntryType.Rel: return 'Relocation';
         case SectionHeaderEntryType.ShLib: return 'ShLib';
-        case SectionHeaderEntryType.DynSym: return 'Dynamic linking symbols section';
+        case SectionHeaderEntryType.DynSym: return 'Dynamic linking symbols';
         case SectionHeaderEntryType.InitArray: return 'Init array';
         case SectionHeaderEntryType.FiniArray: return 'Fini array';
         case SectionHeaderEntryType.PreInitArray: return 'Pre-init array';
         case SectionHeaderEntryType.Group: return 'Section group';
-        case SectionHeaderEntryType.ShNdx: return 'Extended symbol table section index';
-        case SectionHeaderEntryType.Num: return 'Num section';
+        case SectionHeaderEntryType.ShNdx: return 'Extended symbol table index';
+        case SectionHeaderEntryType.Num: return 'Num';
         case SectionHeaderEntryType.GnuAttributes: return 'GNU object attributes';
-        case SectionHeaderEntryType.GnuHash: return 'GNU hash section';
+        case SectionHeaderEntryType.GnuHash: return 'GNU hash';
         case SectionHeaderEntryType.GnuLibList: return 'GNU pre-link library list';
-        case SectionHeaderEntryType.GnuVerDef: return 'GNU version definition section';
-        case SectionHeaderEntryType.GnuVerNeed: return 'GNU version needs section';
+        case SectionHeaderEntryType.GnuVerDef: return 'GNU version definition';
+        case SectionHeaderEntryType.GnuVerNeed: return 'GNU version needs';
         case SectionHeaderEntryType.GnuVerSym: return 'GNU version symbol table';
         default:
             return SectionHeaderEntryType[sectionHeaderEntryType] || Number(sectionHeaderEntryType).toString();
