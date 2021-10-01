@@ -2,7 +2,7 @@ import { ELF, ABI, ISA, ObjectType, ELFSegment, ELFSection, ELFSymbol, ELFSymbol
 import { add, subtract, toNumberSafe } from './biginthelpers';
 import { isSymbolSection } from "./sections";
 
-function filterSymbolsByVirtualAddress(elf: ELF, start: number | BigInt, size: number | BigInt): ELFSymbol[] {
+function filterSymbolsByVirtualAddress(elf: ELF, start: number | bigint, size: number | bigint): ELFSymbol[] {
 
     const end = add(start, size);
 
@@ -118,10 +118,10 @@ export function getSegmentForSymbol(elf: ELF, symbol: ELFSymbol): ELFSegment | u
 }
 
 /** Find all symbols inside that overlap a given virtual memory location. 
- * @param {number | BigInt} location The virtual memory address.
+ * @param {number | bigint} location The virtual memory address.
  * @returns {ELFSymbol[]} an array of symbols that contain the location.
 */
-export function getSymbolsAtVirtualMemoryLocation(elf: ELF, location: number | BigInt): ELFSymbol[] {
+export function getSymbolsAtVirtualMemoryLocation(elf: ELF, location: number | bigint): ELFSymbol[] {
     const symbols: ELFSymbol[] = [];
     for (const section of elf.sections) {
         if (isSymbolSection(section)) {
@@ -145,10 +145,10 @@ export function getSymbolsAtVirtualMemoryLocation(elf: ELF, location: number | B
 }
 
 /** Find all symbols inside that overlap a given physical memory location. 
- * @param {number | BigInt} location The physical memory address.
+ * @param {number | bigint} location The physical memory address.
  * @returns {ELFSymbol[]} an array of symbols that contain the location.
 */
-export function getSymbolsAtPhysicalMemoryLocation(elf: ELF, location: number | BigInt): ELFSymbol[] {
+export function getSymbolsAtPhysicalMemoryLocation(elf: ELF, location: number | bigint): ELFSymbol[] {
     const virtualAddress = physicalAddressToVirtual(elf, location);
     if (virtualAddress) {
         return getSymbolsAtVirtualMemoryLocation(elf, virtualAddress);
@@ -158,10 +158,10 @@ export function getSymbolsAtPhysicalMemoryLocation(elf: ELF, location: number | 
 }
 
 /** Get all the sections that overlap a given virtual memory location 
- * @param {number | BigInt} location The virtual memory address.
+ * @param {number | bigint} location The virtual memory address.
  * @returns {ELFSection[]} an array of sections that find the location inside of them.
 */
-export function getSectionsAtVirtualMemoryLocation(elf: ELF, location: number | BigInt): ELFSection[] {
+export function getSectionsAtVirtualMemoryLocation(elf: ELF, location: number | bigint): ELFSection[] {
     const sections = [];
     for (const section of elf.sections) {
         if (location >= section.addr && location < add(section.addr, section.size)) {
@@ -173,10 +173,10 @@ export function getSectionsAtVirtualMemoryLocation(elf: ELF, location: number | 
 }
 
 /** Get all the sections that overlap a given physical memory location 
- * @param {number | BigInt} location The physical memory address.
+ * @param {number | bigint} location The physical memory address.
  * @returns {ELFSection[]} an array of sections that find the location inside of them.
 */
-export function getSectionsAtPhysicalMemoryLocation(elf: ELF, location: number | BigInt): ELFSection[] {
+export function getSectionsAtPhysicalMemoryLocation(elf: ELF, location: number | bigint): ELFSection[] {
     const virtualAddress = physicalAddressToVirtual(elf, location);
     if (virtualAddress) {
         return getSectionsAtVirtualMemoryLocation(elf, virtualAddress);
@@ -186,10 +186,10 @@ export function getSectionsAtPhysicalMemoryLocation(elf: ELF, location: number |
 }
 
 /** Get all the segments that overlap a given virtual memory location
- * @param {number | BigInt} location The virtual memory address.
+ * @param {number | bigint} location The virtual memory address.
  * @returns {ELFSection} all segments which contain the address.
 */
-export function getSegmentsAtVirtualMemoryLocation(elf: ELF, location: number | BigInt): ELFSegment[] {
+export function getSegmentsAtVirtualMemoryLocation(elf: ELF, location: number | bigint): ELFSegment[] {
     const segments = [];
     for (const segment of elf.segments) {
         if (location >= segment.vaddr && location < add(segment.vaddr, segment.memsz)) {
@@ -200,10 +200,10 @@ export function getSegmentsAtVirtualMemoryLocation(elf: ELF, location: number | 
 }
 
 /** Get all the segments that overlap a given physical memory location 
- * @param {number | BigInt} location The physical memory address.
+ * @param {number | bigint} location The physical memory address.
  * @returns {ELFSection} all segments which contain the address.
 */
-export function getSegmentsAtPhysicalMemoryLocation(elf: ELF, location: number | BigInt): ELFSegment[] {
+export function getSegmentsAtPhysicalMemoryLocation(elf: ELF, location: number | bigint): ELFSegment[] {
     const segments = [];
     for (const segment of elf.segments) {
         if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
@@ -217,7 +217,7 @@ export function getSegmentsAtPhysicalMemoryLocation(elf: ELF, location: number |
  * @param location The virtual memory address.
  * @returns the physical address.
 */
-export function virtualAddressToPhysical(elf: ELF, location: number | BigInt): number | BigInt | undefined {
+export function virtualAddressToPhysical(elf: ELF, location: number | bigint): number | bigint | undefined {
     for (const segment of elf.segments) {
         if (location >= segment.vaddr && location <= add(segment.vaddr, segment.memsz)) {
             const offset = subtract(location, segment.vaddr);
@@ -231,10 +231,10 @@ export function virtualAddressToPhysical(elf: ELF, location: number | BigInt): n
 }
 
 /** translate a virtual address to an offset in the ELF file, if possible. 
- * @param {number | BigInt} location The virtual memory address.
- * @returns {number | BigInt} the file offset.
+ * @param {number | bigint} location The virtual memory address.
+ * @returns {number | bigint} the file offset.
 */
-export function virtualAddressToFileOffset(elf: ELF, location: number | BigInt): number | undefined {
+export function virtualAddressToFileOffset(elf: ELF, location: number | bigint): number | undefined {
     for (const segment of elf.segments) {
         if (location >= segment.vaddr && location < add(segment.vaddr, segment.memsz)) {
             const offset = toNumberSafe(subtract(location, segment.vaddr));
@@ -248,10 +248,10 @@ export function virtualAddressToFileOffset(elf: ELF, location: number | BigInt):
 }
 
 /** translate a physical address to a virtual address. 
- * @param {number | BigInt} location The physical memory address.
- * @returns {number | BigInt} the virtual address.
+ * @param {number | bigint} location The physical memory address.
+ * @returns {number | bigint} the virtual address.
 */
-export function physicalAddressToVirtual(elf: ELF, location: number | BigInt): number | BigInt | undefined {
+export function physicalAddressToVirtual(elf: ELF, location: number | bigint): number | bigint | undefined {
     for (const segment of elf.segments) {
         if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
             const offset = subtract(location, segment.paddr);
@@ -263,10 +263,10 @@ export function physicalAddressToVirtual(elf: ELF, location: number | BigInt): n
 }
 
 /** translate a physical address to an offset in the ELF file. 
- * @param {number | BigInt} location The physical memory address.
- * @returns {number | BigInt} the file offset.
+ * @param {number | bigint} location The physical memory address.
+ * @returns {number | bigint} the file offset.
 */
-export function physicalAddressToFileOffset(elf: ELF, location: number | BigInt): number | undefined {
+export function physicalAddressToFileOffset(elf: ELF, location: number | bigint): number | undefined {
     for (const segment of elf.segments) {
         if (location >= segment.paddr && location < add(segment.paddr, segment.filesz)) {
             const offset = toNumberSafe(subtract(location, segment.paddr));
@@ -279,9 +279,9 @@ export function physicalAddressToFileOffset(elf: ELF, location: number | BigInt)
 
 /** translate a file offset to a physical address, if possible. 
  * @param {number} location The file offset.
- * @returns {number | BigInt} the physical address.
+ * @returns {number | bigint} the physical address.
 */
-export function fileOffsetToPhysicalAddress(elf: ELF, location: number): number | BigInt | undefined {
+export function fileOffsetToPhysicalAddress(elf: ELF, location: number): number | bigint | undefined {
     for (const segment of elf.segments) {
         if (location >= segment.offset && location < add(segment.offset, segment.filesz)) {
             const offset = subtract(location, segment.offset);
@@ -294,9 +294,9 @@ export function fileOffsetToPhysicalAddress(elf: ELF, location: number): number 
 
 /** translate a file offset to a virtual address, if possible. 
  * @param {number} location The file offset.
- * @returns {number | BigInt} the virtual address.
+ * @returns {number | bigint} the virtual address.
 */
-export function fileOffsetToVirtualAddress(elf: ELF, location: number): number | BigInt | undefined {
+export function fileOffsetToVirtualAddress(elf: ELF, location: number): number | bigint | undefined {
     for (const segment of elf.segments) {
         if (location >= segment.offset && location < add(segment.offset, segment.filesz)) {
             const offset = subtract(location, segment.offset);

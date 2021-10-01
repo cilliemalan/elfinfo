@@ -75,7 +75,7 @@ export function sectionHeaderEntryTypeToString(sectionHeaderEntryType: SectionHe
     }
 }
 
-export function sectionFlagsToString(flags: number | BigInt) {
+export function sectionFlagsToString(flags: number | bigint) {
     // no flags are more than 32 bits
     flags = Number(flags);
 

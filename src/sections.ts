@@ -34,7 +34,7 @@ function getString(strings: { [index: number]: string; }, index: number) {
     return str;
 }
 
-async function readStringSection(fh: Reader, offset: number | BigInt, size: number | BigInt): Promise<{ [index: number]: string }> {
+async function readStringSection(fh: Reader, offset: number | bigint, size: number | bigint): Promise<{ [index: number]: string }> {
     const tmp = await fh.read(Number(size), Number(offset));
     let ix = 0;
     const strings: {
@@ -126,7 +126,7 @@ async function readRelocationSection(fh: Reader, offset: number, size: number,
         let ix = 0;
 
         let addr, info, symbolIndex, type;
-        let addend: number | BigInt | undefined;
+        let addend: number | bigint | undefined;
         if (bits == 32) {
             addr = readUInt32(ix); ix += 4;
             info = readUInt32(ix); ix += 4;
@@ -166,7 +166,7 @@ function fillInSymbolNames(symbols: ELFSymbol[], strings?: { [index: number]: st
 }
 
 export async function readSectionHeaderEntries(fh: Reader,
-    sh_off: number | BigInt, sh_entsize: number, sh_num: number,
+    sh_off: number | bigint, sh_entsize: number, sh_num: number,
     bits: number, bigEndian: boolean, eSHStrNdx: number,
     readSymbolData: boolean): Promise<ELFSection[]> {
 

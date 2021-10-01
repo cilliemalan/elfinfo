@@ -5,7 +5,7 @@ import { Reader } from './reader';
 import { toNumberSafe } from './biginthelpers';
 
 export async function readProgramHeaderEntries(fh: Reader,
-    ph_off: number | BigInt, ph_entsize: number, ph_num: number,
+    ph_off: number | bigint, ph_entsize: number, ph_num: number,
     bits: number, bigEndian: boolean): Promise<ELFSegment[]> {
 
     if (ph_num == 0) {

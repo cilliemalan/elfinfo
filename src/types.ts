@@ -199,7 +199,7 @@ export interface ELF {
     /** A human readable description of flags. */
     flagsDescription: string;
     /** The virtual address of the entypoint. */
-    entryPoint: number | BigInt;
+    entryPoint: number | bigint;
     /** Offset in the ELF file of the first program header entry. */
     programHeaderOffset: number;
     /** Offset in the ELF file of the first section header entyr. */
@@ -252,9 +252,9 @@ export interface ELFSegment {
     /** The file offset for data for this segment. */
     offset: number;
     /** The virtual address for this segment. Also called the VMA address. */
-    vaddr: number | BigInt;
+    vaddr: number | bigint;
     /** The physical address for this segment. Also called the LMA or load address. */
-    paddr: number | BigInt;
+    paddr: number | bigint;
     /** The size of this segment in the ELF file */
     filesz: number;
     /** The size of this segment in (virtual) memory. */
@@ -282,7 +282,7 @@ export interface ELFSection {
     /** A human readable description of flags. */
     flagsDescription: string;
     /** The (virtual) address of this section. */
-    addr: number | BigInt;
+    addr: number | bigint;
     /** The offset of this section. */
     offset: number;
     /** The size of this section. */
@@ -328,7 +328,7 @@ export interface ELFSymbol {
     /** The name as copied from the string table. */
     name: string;
     /** The value of this symbol. The interpretation of the value is dependent on a few things but is generally an offset or address. */
-    value: number | BigInt;
+    value: number | bigint;
     /** The size of this symbol, if applicable. */
     size: number;
     /** Symbol type specific information. */
@@ -355,7 +355,7 @@ export interface ELFSymbol {
     shndx: number;
 
     /** The calculated virtaul address for the symbol, if possible */
-    virtualAddress?: number | BigInt;
+    virtualAddress?: number | bigint;
     /** The data for the symbol, if any and if it was specified to be loaded */
     data?: Uint8Array;
 }
@@ -374,7 +374,7 @@ export interface ELFRelocation {
      * or a shared object, the value is the virtual address of the storage unit affected
      * by the relocation.
      */
-    addr: number | BigInt;
+    addr: number | bigint;
 
     /**
      * The symbol table index with respect to which the
@@ -390,10 +390,10 @@ export interface ELFRelocation {
      * of applying ELF32_R_TYPE or ELF32_R_SYM, respectively, to the
      * entry's r_info member.
      */
-    info: number | BigInt;
+    info: number | bigint;
 
     /** A constant addend used to compute the value to be stored into the relocatable field. */
-    addend?: number | BigInt;
+    addend?: number | bigint;
 
     /** the symbol index for this relocation.
      * @summary The symbol for this relocation

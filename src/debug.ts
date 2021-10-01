@@ -2,7 +2,7 @@ import { isRelocationSection, isStringSection, isSymbolSection } from './section
 import { SectionHeaderEntryType, ELFOpenResult } from './types';
 import { ELF } from './types';
 
-function toHex(n: number | BigInt | undefined, padamount: number = 0) {
+function toHex(n: number | bigint | undefined, padamount: number = 0) {
     if (n !== undefined) {
         const hexchars = n.toString(16);
         if (padamount == 0) {

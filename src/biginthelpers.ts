@@ -1,5 +1,5 @@
 
-export function subtract(a: number | BigInt, b: number | BigInt): number | BigInt {
+export function subtract(a: number | bigint, b: number | bigint): number | bigint {
     if (typeof a == 'bigint' && typeof b == 'bigint') {
         return a - b;
     } else if (typeof a == 'number' && typeof b == 'number') {
@@ -9,7 +9,7 @@ export function subtract(a: number | BigInt, b: number | BigInt): number | BigIn
     }
 }
 
-export function add(a: number | BigInt, b: number | BigInt): number | BigInt {
+export function add(a: number | bigint, b: number | bigint): number | bigint {
     if (typeof a == 'bigint' && typeof b == 'bigint') {
         return a + b;
     } else if (typeof a == 'number' && typeof b == 'number') {
@@ -19,7 +19,7 @@ export function add(a: number | BigInt, b: number | BigInt): number | BigInt {
     }
 }
 
-export function divide(a: number | BigInt, b: number | BigInt): number | BigInt {
+export function divide(a: number | bigint, b: number | bigint): number | bigint {
     if (typeof a == 'bigint' && typeof b == 'bigint') {
         return a / b;
     } else if (typeof a == 'number' && typeof b == 'number') {
@@ -31,7 +31,7 @@ export function divide(a: number | BigInt, b: number | BigInt): number | BigInt 
 
 
 const tooBigInt = BigInt(1e51);
-export function toNumberSafe(a: number | BigInt, warnings?: string[]) : number {
+export function toNumberSafe(a: number | bigint, warnings?: string[]) : number {
     if (typeof a === 'bigint') {
         if (a > tooBigInt) {
             if (warnings) {
