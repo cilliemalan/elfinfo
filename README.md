@@ -226,6 +226,7 @@ In order to run tests you will need to have the following programs installed and
 - [arm aarch64 gcc](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads)
 - [arm aarch64_be gcc](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads)
 - [riscv embedded gcc](https://github.com/xpack-dev-tools/riscv-none-embed-gcc-xpack/releases/)
+- [xtensa gcc](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-tools.html#xtensa-esp32-elf)
 
 And then build the test programs by running `testprograms/build.sh`.
 
