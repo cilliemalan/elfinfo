@@ -36,6 +36,11 @@ export type StockProgramData = {
     [Property in StockProgram]: StockProgramByAbi
 }
 
+export interface SpecialProgram {
+    name: string;
+    path: string;
+}
+
 const basepath = path.resolve(path.join(__dirname, '..', '..', 'testprograms'));
 export const testProgramObjects: TestProgramObject[] = ['factorial', 'main', 'startup', 'syscalls', 'vectortable'];
 export const testProgramAbis: TestProgramAbi[] = ['arm-eabi', 'clang-x64', 'gcc-x64', 'riscv-eabi'];
@@ -83,5 +88,12 @@ function getStockPrograms() {
         }))])) as StockProgramData;
 }
 
+function getSpecialPrograms(): SpecialProgram[] {
+    const dir = path.join(basepath, 'special');
+    return fs.readdirSync(dir)
+        .map(n => ({ name: n, path: path.join(dir, n) }));
+}
+
 export const testPrograms = getTestPrograms();
 export const stockPrograms = getStockPrograms();
+export const specialPrograms = getSpecialPrograms();
