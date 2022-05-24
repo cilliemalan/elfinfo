@@ -1,5 +1,6 @@
 #!/bin/bash
 
+let broken_compilers=0
 
 check_compiler() {
     printf "checking compiler $1..."
@@ -9,6 +10,7 @@ check_compiler() {
         printf "\r\e[0;32mchecking compiler $1 👍   \e[0m\n"
     else
         printf "\r\e[0;31mchecking compiler $1 👎   \e[0m\n"
+        let broken_compilers++
     fi
 }
 
@@ -19,6 +21,8 @@ check_compiler riscv-none-embed-gcc
 check_compiler aarch64-none-linux-gnu-gcc
 check_compiler aarch64_be-none-linux-gnu-gcc
 check_compiler arm-none-linux-gnueabihf-gcc
+
+test $broken_compilers -ne 0 && exit -1
 
 make -f Makefile.gcc-x64 &
 make -f Makefile.clang-x64 &
