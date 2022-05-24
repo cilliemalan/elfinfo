@@ -219,13 +219,13 @@ Symbols for section #24 .symtab:
 
 # Testing
 In order to run tests you will need to have the following programs installed and in your path
-- [gcc](https://gcc.gnu.org/)
-- [clang](https://releases.llvm.org/download.html#10.0.0)
-- [arm eabi gcc](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads)
-- [arm aarch32 gcc](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads)
-- [arm aarch64 gcc](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads)
-- [arm aarch64_be gcc](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads)
-- [riscv embedded gcc](https://github.com/xpack-dev-tools/riscv-none-embed-gcc-xpack/releases/)
+- [gcc](https://gcc.gnu.org/) (expects `gcc` to be in your PATH)
+- [clang](https://releases.llvm.org/download.html#10.0.0) (`clang`)
+- [arm eabi gcc](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads) (`arm-none-eabi-gcc`)
+- [arm aarch32 gcc](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads) (`arm-none-linux-gnueabihf-gcc`)
+- [arm aarch64 gcc](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads) (`aarch64-none-linux-gnu-gcc`)
+- [arm aarch64_be gcc](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads) (`aarch64_be-none-linux-gnu-gcc`)
+- [riscv embedded gcc](https://github.com/xpack-dev-tools/riscv-none-embed-gcc-xpack/releases/) (`riscv-none-embed-gcc`)
 - [xtensa gcc](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-tools.html#xtensa-esp32-elf)
 
 And then build the test programs by running `testprograms/build.sh`.
