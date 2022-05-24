@@ -245,7 +245,7 @@ and the tests don't run the programs, they just expect the ELF files to contain 
 - [ ] Async file API.
 - [ ] Blob API.
 - [ ] Documentation.
-- [ ] Disassembly of functions.
+- [ ] (Optional support for) Disassembly of functions.
 - [ ] Rudimentary binary analysis, especially stack analysis.
 - [ ] Demanging of C++ names (or other names for that matter).
 - [ ] Performance. Though the ELF parsing happens in an instant, the functions
@@ -256,6 +256,7 @@ and the tests don't run the programs, they just expect the ELF files to contain 
 - [ ] A companion library for visualization. I would like to see where everything is and easily be
       able to spot functions that are too big or in the wrong place.
 - [ ] Enough information in the ELF structure to be able to write ELF files.
+- [ ] Browser support.
 
 # License
 See [LICENSE](LICENSE) which applies to all files in this repository unless otherwise specified.
