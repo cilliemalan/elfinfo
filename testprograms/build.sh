@@ -21,6 +21,7 @@ check_compiler riscv-none-embed-gcc
 check_compiler aarch64-none-linux-gnu-gcc
 check_compiler aarch64_be-none-linux-gnu-gcc
 check_compiler arm-none-linux-gnueabihf-gcc
+# check_compiler xtensa-esp32-elf-gcc
 
 test $broken_compilers -ne 0 && exit -1
 
