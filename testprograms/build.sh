@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -e
 
 check_compiler() {
     printf "checking compiler $1..."
